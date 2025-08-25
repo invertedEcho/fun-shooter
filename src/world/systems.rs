@@ -24,14 +24,14 @@ pub fn spawn_ground(
     ));
 
     commands.spawn((
-        Collider::cuboid(10.0, 10.0, 10.0),
-        Transform::from_xyz(0.0, 2.0, -30.0),
+        Collider::cuboid(10.0, 5.0, 10.0),
+        Transform::from_xyz(0.0, 2.5, -30.0),
         RigidBody::Static,
     ));
 
     commands.spawn((
         Collider::cuboid(20.0, 10.0, 20.0),
-        Transform::from_xyz(20.0, 2.0, -30.0),
+        Transform::from_xyz(20.0, 5.0, -30.0),
         RigidBody::Static,
     ));
 }
