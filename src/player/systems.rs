@@ -1,24 +1,11 @@
-use std::{f32::consts::FRAC_PI_2, ops::Neg};
+use std::f32::consts::FRAC_PI_2;
 
-use avian3d::prelude::*;
-use bevy::{
-    color::palettes::tailwind::TEAL_200, input::mouse::AccumulatedMouseMotion,
-    pbr::NotShadowCaster, prelude::*,
-};
+use avian3d::{math::PI, prelude::*};
+use bevy::{input::mouse::AccumulatedMouseMotion, pbr::NotShadowCaster, prelude::*};
 
 use crate::player::{PLAYER_MOVEMENT_SPEED, components::Player};
 
-pub fn spawn_player(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    let arm = meshes.add(Cuboid::new(0.1, 0.1, 0.5));
-    let arm_material = materials.add(StandardMaterial {
-        base_color: TEAL_200.into(),
-        ..default()
-    });
-
+pub fn spawn_player(asset_server: Res<AssetServer>, mut commands: Commands) {
     commands
         .spawn((
             Player,
@@ -38,15 +25,23 @@ pub fn spawn_player(
                 Projection::from(PerspectiveProjection::default()),
             ));
 
-            // player right arm
+            let model = asset_server
+                .load(GltfAssetLabel::Scene(0).from_asset("glb/weapons/WA_2000.glb#Scene0"));
             parent.spawn((
-                Mesh3d(arm),
-                MeshMaterial3d(arm_material),
-                Transform::from_xyz(0.2, -0.1, -0.25),
-                // // Ensure the arm is only rendered by the view model camera.
-                // RenderLayers::layer(VIEW_MODEL_RENDER_LAYER),
-                // The arm is free-floating, so shadows would look weird.
-                NotShadowCaster,
+                Transform {
+                    translation: Vec3 {
+                        x: 2.0,
+                        y: -1.0,
+                        z: -5.0,
+                    },
+                    // rotate 180 degrees as weapon is spawned wrong way
+                    // need to use radian, radian another way of representing rotation like degrees
+                    // PI = 180 degrees
+                    // FRAC_PI_2 (e.g. PI / 2) = 90 degrees
+                    rotation: Quat::from_rotation_y(PI),
+                    ..default()
+                },
+                SceneRoot(model),
             ));
         });
 }
