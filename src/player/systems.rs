@@ -1,9 +1,16 @@
-use std::f32::consts::FRAC_PI_2;
+use std::time::Duration;
 
-use avian3d::{math::PI, prelude::*};
-use bevy::{input::mouse::AccumulatedMouseMotion, pbr::NotShadowCaster, prelude::*};
+use avian3d::{
+    math::PI,
+    prelude::{mass_properties::components, *},
+};
+use bevy::{color::palettes::css::RED, prelude::*};
 
-use crate::player::{PLAYER_MOVEMENT_SPEED, components::Player};
+use crate::player::{
+    PLAYER_MOVEMENT_SPEED,
+    camera::components::PlayerCamera,
+    components::{BulletTimer, Player, PlayerWeaponShootCooldownTimer},
+};
 
 pub fn spawn_player(asset_server: Res<AssetServer>, mut commands: Commands) {
     commands
@@ -22,11 +29,13 @@ pub fn spawn_player(asset_server: Res<AssetServer>, mut commands: Commands) {
         .with_children(|parent| {
             parent.spawn((
                 Camera3d::default(),
+                Transform::from_xyz(0.0, 0.0, 0.0),
                 Projection::from(PerspectiveProjection::default()),
+                PlayerCamera::default(),
             ));
 
             let model = asset_server
-                .load(GltfAssetLabel::Scene(0).from_asset("glb/weapons/WA_2000.glb#Scene0"));
+                .load(GltfAssetLabel::Scene(0).from_asset("weapons/rifle/WA_2000.glb#Scene0"));
             parent.spawn((
                 Transform {
                     translation: Vec3 {
@@ -77,30 +86,88 @@ pub fn player_movement(
     }
 }
 
-// we only need to change transform for player as camera is a child of the player
-pub fn camera_orbit_player(
-    mouse_motion: Res<AccumulatedMouseMotion>,
-    mut player_transform: Single<&mut Transform, With<Player>>,
+pub fn basic_shooting(
+    asset_server: Res<AssetServer>,
+    mut commands: Commands,
+    mouse_input: Res<ButtonInput<MouseButton>>,
+    player_transform: Single<&Transform, With<Player>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    player_weapon_shoot_cooldown_timer_query: Query<&PlayerWeaponShootCooldownTimer>,
 ) {
-    let delta = mouse_motion.delta;
+    if !mouse_input.pressed(MouseButton::Left) {
+        return;
+    }
 
-    if delta != Vec2::ZERO {
-        // pitch like nodding yes with your head
-        let delta_pitch = -delta.y * 0.002;
+    // if on cooldown, dont allow shooting
+    if player_weapon_shoot_cooldown_timer_query.iter().len() != 0 {
+        return;
+    }
 
-        // yaw like nodding no with your head
-        let delta_yaw = -delta.x * 0.003;
+    // if no timer, means we are allowed to shoot, and insert the cooldown timer
+    commands.spawn(PlayerWeaponShootCooldownTimer(Timer::from_seconds(
+        0.1,
+        TimerMode::Once,
+    )));
 
-        // existing rotation
-        let (current_yaw, current_pitch, current_roll) =
-            player_transform.rotation.to_euler(EulerRot::YXZ);
+    let audio = asset_server
+        .load("weapons/Snake's Authentic Gun Sounds/Full Sound/7.62x39/MP3/762x39 Single MP3.mp3");
 
-        let new_yaw = delta_yaw + current_yaw;
+    commands.spawn((AudioPlayer::new(audio), PlaybackSettings::ONCE));
 
-        const PITCH_LIMIT: f32 = FRAC_PI_2 - 0.01;
-        let new_pitch = (delta_pitch + current_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
+    let local_bullet_velocity = Vec3 {
+        z: -100.0,
+        x: 0.0,
+        y: 0.0,
+    };
+    let world_bullet_velocity = player_transform.rotation * local_bullet_velocity;
 
-        player_transform.rotation =
-            Quat::from_euler(EulerRot::YXZ, new_yaw, new_pitch, current_roll);
+    commands.spawn((
+        Transform {
+            translation: Vec3 {
+                x: player_transform.translation.x,
+                y: player_transform.translation.y,
+                z: player_transform.translation.z,
+            },
+            ..default()
+        },
+        Collider::cuboid(0.5, 0.5, 0.5),
+        Sensor,
+        Mesh3d(meshes.add(Cuboid {
+            half_size: Vec3::splat(0.25),
+        })),
+        MeshMaterial3d(materials.add(StandardMaterial {
+            base_color: RED.into(),
+            ..Default::default()
+        })),
+        LinearVelocity(world_bullet_velocity),
+        RigidBody::Kinematic,
+        BulletTimer(Timer::from_seconds(3.0, TimerMode::Once)),
+    ));
+}
+
+pub fn tick_player_weapon_timer(
+    mut commands: Commands,
+    query: Query<(Entity, &mut PlayerWeaponShootCooldownTimer)>,
+    time: Res<Time>,
+) {
+    for (entity, mut timer) in query {
+        timer.0.tick(time.delta());
+        if timer.0.just_finished() {
+            commands.entity(entity).despawn();
+        }
+    }
+}
+
+pub fn handle_bullet_timer(
+    bullet_timer_query: Query<(Entity, &mut BulletTimer)>,
+    mut commands: Commands,
+    time: Res<Time>,
+) {
+    for (entity, mut timer) in bullet_timer_query {
+        timer.0.tick(time.delta());
+        if timer.0.just_finished() {
+            commands.entity(entity).despawn();
+        }
     }
 }
