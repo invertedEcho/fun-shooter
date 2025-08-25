@@ -12,7 +12,8 @@ mod camera;
 pub mod components;
 mod systems;
 
-const PLAYER_MOVEMENT_SPEED: f32 = 20.0;
+const PLAYER_WALK_SPEED: f32 = 2.0;
+const PLAYER_RUN_SPEED: f32 = 5.0;
 
 pub struct PlayerPlugin;
 

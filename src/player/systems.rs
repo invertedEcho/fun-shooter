@@ -1,13 +1,8 @@
-use std::time::Duration;
-
-use avian3d::{
-    math::PI,
-    prelude::{mass_properties::components, *},
-};
+use avian3d::{math::PI, prelude::*};
 use bevy::{color::palettes::css::RED, prelude::*};
 
 use crate::player::{
-    PLAYER_MOVEMENT_SPEED,
+    PLAYER_RUN_SPEED, PLAYER_WALK_SPEED,
     camera::components::PlayerCamera,
     components::{BulletTimer, Player, PlayerWeaponShootCooldownTimer},
 };
@@ -17,9 +12,10 @@ pub fn spawn_player(asset_server: Res<AssetServer>, mut commands: Commands) {
         .spawn((
             Player,
             RigidBody::Dynamic,
-            Collider::capsule(3.0, 3.0),
+            Collider::capsule(0.7, 0.3),
             LinearVelocity::ZERO,
-            Transform::from_xyz(-10.0, 20.0, -20.0),
+            Transform::from_xyz(0.0, 3.0, 0.0),
+            LinearDamping(1.0),
             Friction::new(1.0),
             LockedAxes::new()
                 .lock_rotation_x()
@@ -43,6 +39,7 @@ pub fn spawn_player(asset_server: Res<AssetServer>, mut commands: Commands) {
                         y: -1.0,
                         z: -5.0,
                     },
+                    scale: Vec3::splat(1.0),
                     // rotate 180 degrees as weapon is spawned wrong way
                     // need to use radian, radian another way of representing rotation like degrees
                     // PI = 180 degrees
@@ -60,22 +57,28 @@ pub fn player_movement(
     player: Query<(&mut LinearVelocity, &mut Transform), With<Player>>,
 ) {
     for (mut velocity, transform) in player {
+        let speed = if keyboard_input.pressed(KeyCode::ShiftLeft) {
+            PLAYER_RUN_SPEED
+        } else {
+            PLAYER_WALK_SPEED
+        };
+
         let mut local_velocity = Vec3::ZERO;
 
         if keyboard_input.pressed(KeyCode::KeyW) {
-            local_velocity.z -= PLAYER_MOVEMENT_SPEED;
+            local_velocity.z -= speed;
         }
         if keyboard_input.pressed(KeyCode::KeyA) {
-            local_velocity.x -= PLAYER_MOVEMENT_SPEED;
+            local_velocity.x -= speed;
         }
         if keyboard_input.pressed(KeyCode::KeyD) {
-            local_velocity.x += PLAYER_MOVEMENT_SPEED;
+            local_velocity.x += speed;
         }
         if keyboard_input.pressed(KeyCode::KeyS) {
-            local_velocity.z += PLAYER_MOVEMENT_SPEED;
+            local_velocity.z += speed;
         }
         if keyboard_input.just_pressed(KeyCode::Space) {
-            velocity.y = 30.0;
+            velocity.y = 3.0;
         }
 
         if local_velocity.length_squared() > 0.0 {

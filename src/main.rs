@@ -18,8 +18,8 @@ fn main() {
 
     // avian (physics)
     app.add_plugins(PhysicsPlugins::default())
-        .add_plugins(PhysicsDebugPlugin::default())
-        .insert_resource(Gravity(Vec3::NEG_Y * 100.0));
+        .add_plugins(PhysicsDebugPlugin::default());
+    // .insert_resource(Gravity(Vec3::NEG_Y * 9.81));
 
     // own plugins
     app.add_plugins(PlayerPlugin)
