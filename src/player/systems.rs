@@ -1,18 +1,23 @@
 use avian3d::{math::PI, prelude::*};
-use bevy::{color::palettes::css::RED, prelude::*};
+use bevy::{color::palettes::css::RED, prelude::*, render::view::RenderLayers};
 
 use crate::player::{
     PLAYER_RUN_SPEED, PLAYER_WALK_SPEED,
-    camera::components::PlayerCamera,
+    camera::{
+        VIEW_MODEL_RENDER_LAYER,
+        components::{PlayerCamera, WorldModelCamera},
+    },
     components::{BulletTimer, Player, PlayerWeaponShootCooldownTimer},
 };
 
+// TODO: Everything camera related should be moved into crate::player::camera
 pub fn spawn_player(asset_server: Res<AssetServer>, mut commands: Commands) {
     commands
         .spawn((
             Player,
             RigidBody::Dynamic,
-            Collider::capsule(0.7, 0.3),
+            Collider::capsule(0.7, 1.7),
+            Visibility::default(),
             LinearVelocity::ZERO,
             Transform::from_xyz(0.0, 3.0, 0.0),
             LinearDamping(1.0),
@@ -24,31 +29,47 @@ pub fn spawn_player(asset_server: Res<AssetServer>, mut commands: Commands) {
         ))
         .with_children(|parent| {
             parent.spawn((
+                WorldModelCamera,
                 Camera3d::default(),
-                Transform::from_xyz(0.0, 0.0, 0.0),
-                Projection::from(PerspectiveProjection::default()),
-                PlayerCamera::default(),
+                Projection::from(PerspectiveProjection {
+                    // fov: 90.0_f32.to_radians(),
+                    ..default()
+                }),
             ));
 
-            let model = asset_server
-                .load(GltfAssetLabel::Scene(0).from_asset("weapons/rifle/WA_2000.glb#Scene0"));
+            // Spawn view model camera
             parent.spawn((
-                Transform {
-                    translation: Vec3 {
-                        x: 2.0,
-                        y: -1.0,
-                        z: -5.0,
-                    },
-                    scale: Vec3::splat(1.0),
-                    // rotate 180 degrees as weapon is spawned wrong way
-                    // need to use radian, radian another way of representing rotation like degrees
-                    // PI = 180 degrees
-                    // FRAC_PI_2 (e.g. PI / 2) = 90 degrees
-                    rotation: Quat::from_rotation_y(PI),
+                PlayerCamera::default(),
+                Camera3d::default(),
+                Camera {
+                    order: 100,
                     ..default()
                 },
-                SceneRoot(model),
+                RenderLayers::layer(VIEW_MODEL_RENDER_LAYER),
             ));
+
+            let model =
+                asset_server.load(GltfAssetLabel::Scene(0).from_asset("weapons/rifle/WA_2000.glb"));
+
+            parent
+                .spawn((
+                    Transform {
+                        translation: Vec3 {
+                            x: 2.0,
+                            y: -1.0,
+                            z: -5.0,
+                        },
+                        scale: Vec3::splat(0.5),
+                        // rotate 180 degrees as weapon is spawned wrong way
+                        // need to use radian, radian another way of representing rotation like degrees
+                        // PI = 180 degrees
+                        // FRAC_PI_2 (e.g. PI / 2) = 90 degrees
+                        rotation: Quat::from_rotation_y(PI),
+                        ..default()
+                    },
+                    RenderLayers::layer(VIEW_MODEL_RENDER_LAYER),
+                ))
+                .with_child(SceneRoot(model));
         });
 }
 
@@ -113,10 +134,10 @@ pub fn basic_shooting(
         TimerMode::Once,
     )));
 
-    let audio = asset_server
-        .load("weapons/Snake's Authentic Gun Sounds/Full Sound/7.62x39/MP3/762x39 Single MP3.mp3");
+    // let audio = asset_server
+    //     .load("weapons/Snake's Authentic Gun Sounds/Full Sound/7.62x39/MP3/762x39 Single MP3.mp3");
 
-    commands.spawn((AudioPlayer::new(audio), PlaybackSettings::ONCE));
+    // commands.spawn((AudioPlayer::new(audio), PlaybackSettings::ONCE));
 
     let local_bullet_velocity = Vec3 {
         z: -100.0,
