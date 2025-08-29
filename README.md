@@ -2,6 +2,10 @@
 
 this project assumes 1 unit = 1m
 
+uses:
+- avian3d for physics
+- blenvy for bevy <-> blender workflow
+
 Attributions:
 
 - WA 2000 by abc08002 [CC-BY](https://creativecommons.org/licenses/by/3.0/) via Poly Pizza (https://poly.pizza/m/wns2a88122)

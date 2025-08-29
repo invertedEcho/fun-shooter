@@ -17,3 +17,6 @@ pub enum PlayerCameraMode {
     FirstPerson,
     ThirdPerson,
 }
+
+#[derive(Debug, Component)]
+pub struct WorldModelCamera;
