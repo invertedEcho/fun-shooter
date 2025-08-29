@@ -4,7 +4,7 @@ this project assumes 1 unit = 1m
 
 uses:
 - avian3d for physics
-- blenvy for bevy <-> blender workflow
+- skein for bevy <-> blender integration (work with bevy components in blender)
 
 Attributions:
 

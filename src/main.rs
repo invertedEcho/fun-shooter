@@ -1,13 +1,9 @@
 use avian3d::prelude::*;
 use bevy::prelude::*;
 use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
-use blenvy::{BlenvyPlugin, BlueprintInfo, GameWorldTag, HideUntilReady, SpawnBlueprint};
 
 use crate::{
-    debug_hud::DebugHudPlugin,
-    game_flow::GameFlowPlugin,
-    player::{PlayerPlugin, components::Player},
-    world::WorldPlugin,
+    debug_hud::DebugHudPlugin, game_flow::GameFlowPlugin, player::PlayerPlugin, world::WorldPlugin,
 };
 
 mod debug_hud;
@@ -20,11 +16,6 @@ fn main() {
 
     // bevy-builtin plugins
     app.add_plugins(DefaultPlugins);
-
-    // blenvy stuff
-    app.add_plugins(BlenvyPlugin::default());
-    app.register_type::<Player>();
-    app.add_systems(Startup, blenvy_setup);
 
     // avian (physics)
     app.add_plugins(PhysicsPlugins::default())
@@ -41,13 +32,4 @@ fn main() {
         .add_plugins(WorldInspectorPlugin::new());
 
     app.run();
-}
-
-fn blenvy_setup(mut commands: Commands) {
-    commands.spawn((
-        BlueprintInfo::from_path("maps/fps_tps_map.glb"),
-        SpawnBlueprint,
-        HideUntilReady,
-        GameWorldTag,
-    ));
 }
