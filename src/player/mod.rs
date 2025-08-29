@@ -8,7 +8,7 @@ use crate::player::{
     },
 };
 
-mod camera;
+pub mod camera;
 pub mod components;
 mod systems;
 
