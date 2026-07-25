@@ -6,11 +6,10 @@ use serde::{Deserialize, Serialize};
 // no idea if this number makes sense but works so far
 pub const MAX_SHOOTING_DISTANCE: f32 = 200.0;
 
-pub const DEFAULT_BULLET_DAMAGE: f32 = 7.5;
-
 #[derive(Component, Serialize, Deserialize, PartialEq)]
 pub struct PlayerWeapons {
     pub weapons: [PlayerWeapon; 2],
+    pub active_weapon_slot: usize,
 }
 
 /// Static information of the weapon
@@ -47,6 +46,7 @@ pub enum WeaponKind {
     Glock,
     AK47,
     P90,
+    SniperRifle,
 }
 
 impl Display for WeaponKind {
@@ -55,6 +55,7 @@ impl Display for WeaponKind {
             WeaponKind::Glock => write!(f, "Glock"),
             WeaponKind::AK47 => write!(f, "AK-47"),
             WeaponKind::P90 => write!(f, "P-90"),
+            WeaponKind::SniperRifle => write!(f, "Sniper"),
         }
     }
 }
@@ -83,13 +84,22 @@ pub const WEAPON_P90: GameWeapon = GameWeapon {
     damage: 20.0,
 };
 
-pub const ALL_GAME_WEAPONS: [GameWeapon; 3] =
-    [WEAPON_AK47, WEAPON_GLOCK, WEAPON_P90];
+pub const WEAPON_SNIPER_RIFLE: GameWeapon = GameWeapon {
+    kind: WeaponKind::SniperRifle,
+    cost: 3000,
+    max_loaded_ammo: 5,
+    slot_type: WeaponSlotType::Primary,
+    damage: 100.0,
+};
+
+pub const ALL_GAME_WEAPONS: [GameWeapon; 4] =
+    [WEAPON_AK47, WEAPON_GLOCK, WEAPON_P90, WEAPON_SNIPER_RIFLE];
 
 pub fn get_game_weapon_by_kind(weapon_kind: &WeaponKind) -> GameWeapon {
     match weapon_kind {
         WeaponKind::Glock => WEAPON_GLOCK,
         WeaponKind::AK47 => WEAPON_AK47,
         WeaponKind::P90 => WEAPON_P90,
+        WeaponKind::SniperRifle => WEAPON_SNIPER_RIFLE,
     }
 }

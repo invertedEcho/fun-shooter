@@ -4,7 +4,7 @@ use rand::seq::IndexedRandom;
 use shared::{
     character_controller::components::Grounded,
     components::DespawnTimer,
-    player::{AimType, PlayerState},
+    player::AimType,
     shooting::{PlayerWeapons, WeaponKind},
 };
 
@@ -112,22 +112,21 @@ fn spawn_audio_player_container(mut commands: Commands) {
 
 pub fn play_sound_on_player_weapon_fired(
     mut message_reader: MessageReader<PlayerWeaponFiredMessage>,
-    player_query: Single<(&PlayerWeapons, &PlayerState)>,
+    player_weapons: Single<&PlayerWeapons>,
     mut play_sound_message_writer: MessageWriter<PlaySoundMessage>,
 ) {
-    let (player_weapons, player_state) = player_query.into_inner();
     for _ in message_reader.read() {
-        let current_weapon =
-            &player_weapons.weapons[player_state.active_weapon_slot];
+        let active_weapon_slot = player_weapons.active_weapon_slot;
+        let current_weapon = &player_weapons.weapons[active_weapon_slot];
 
+        // TODO: hmm we need more weapon sounds
         let shoot_sound = match current_weapon.game_weapon.kind {
-            WeaponKind::AK47 => {
+            WeaponKind::AK47 | WeaponKind::SniperRifle => {
                 &(BASE_PATH_TO_ASSAULT_RIFLE_SOUNDS.to_string() + "shoot.mp3")
             }
             WeaponKind::Glock => {
                 &(BASE_PATH_TO_PISTOL_SOUNDS.to_string() + "shoot.ogg")
             }
-            // TODO: hmm we need more weapon sounds
             WeaponKind::P90 => {
                 &(BASE_PATH_TO_WEAPON_SOUNDS.to_string() + "smg/shoot.mp3")
             }
@@ -247,7 +246,7 @@ fn play_weapon_slot_change_audio(
             WeaponKind::Glock => {
                 BASE_PATH_TO_PISTOL_SOUNDS.to_string() + "equip.ogg"
             }
-            WeaponKind::AK47 | WeaponKind::P90 => {
+            WeaponKind::AK47 | WeaponKind::P90 | WeaponKind::SniperRifle => {
                 BASE_PATH_TO_ASSAULT_RIFLE_SOUNDS.to_string() + "equip.mp3"
             }
         };
@@ -261,16 +260,14 @@ fn play_weapon_slot_change_audio(
 fn play_aim_sound_on_changed_aim_type(
     mut play_sound_message_writer: MessageWriter<PlaySoundMessage>,
     new_aim_type: Single<&AimType, Changed<AimType>>,
-    player_query: Single<(&PlayerWeapons, &PlayerState)>,
+    player_weapons: Single<&PlayerWeapons>,
 ) {
-    let (player_weapons, player_state) = player_query.into_inner();
-
     if **new_aim_type != AimType::Scoped {
         return;
     }
 
-    let current_weapon =
-        &player_weapons.weapons[player_state.active_weapon_slot];
+    let active_weapon_slot = player_weapons.active_weapon_slot;
+    let current_weapon = &player_weapons.weapons[active_weapon_slot];
     let current_weapon_stats = &current_weapon.game_weapon;
 
     if current_weapon_stats.kind == WeaponKind::Glock {
@@ -283,20 +280,18 @@ fn play_aim_sound_on_changed_aim_type(
 fn play_reload_sound(
     mut play_sound_message_writer: MessageWriter<PlaySoundMessage>,
     mut message_reader: MessageReader<ReloadPlayerWeaponMessage>,
-    player_query: Single<(&PlayerWeapons, &PlayerState)>,
+    player_weapons: Single<&PlayerWeapons>,
 ) {
-    let (player_weapons, player_state) = player_query.into_inner();
     for _ in message_reader.read() {
-        let current_weapon_kind = &player_weapons.weapons
-            [player_state.active_weapon_slot]
-            .game_weapon
-            .kind;
+        let active_weapon_slot = player_weapons.active_weapon_slot;
+        let current_weapon_kind =
+            &player_weapons.weapons[active_weapon_slot].game_weapon.kind;
 
         let path = match current_weapon_kind {
             WeaponKind::Glock => {
                 BASE_PATH_TO_PISTOL_SOUNDS.to_string() + "reload.ogg"
             }
-            WeaponKind::AK47 | WeaponKind::P90 => {
+            WeaponKind::AK47 | WeaponKind::P90 | WeaponKind::SniperRifle => {
                 BASE_PATH_TO_ASSAULT_RIFLE_SOUNDS.to_string() + "reload.mp3"
             }
         };

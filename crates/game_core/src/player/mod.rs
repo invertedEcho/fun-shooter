@@ -11,7 +11,7 @@ use shared::{
     game_score::{GameScore, LivingEntityStats},
     multiplayer_messages::{PlayerHitMessage, ShootRequest},
     player::{Player, PlayerBundle},
-    shooting::MAX_SHOOTING_DISTANCE,
+    shooting::{MAX_SHOOTING_DISTANCE, PlayerWeapons},
 };
 
 use crate::enemy::ai::messages::PlayerHitEnemy;
@@ -106,7 +106,7 @@ fn handle_shoot_requests(
     mut message_writer: MessageWriter<ToClients<PlayerHitMessage>>,
     mut health_query: Query<&mut Health>,
     spatial_query: SpatialQuery,
-    player_query: Query<(Entity, &OwnedBy), With<Player>>,
+    player_query: Query<(Entity, &OwnedBy, &PlayerWeapons), With<Player>>,
     mut game_score: Single<&mut GameScore>,
     enemy_query: Query<Entity, With<Enemy>>,
     mut player_hit_enemy_message_writer: MessageWriter<PlayerHitEnemy>,
@@ -119,10 +119,9 @@ fn handle_shoot_requests(
         let message = &message.message;
 
         // the player entity that sent this ShootRequest
-        let Some(shooter_entity) = player_query
+        let Some((shooter_entity, _, player_weapons)) = player_query
             .iter()
-            .find(|(_, controlled_by)| controlled_by.0 == source_client)
-            .map(|i| i.0)
+            .find(|(_, controlled_by, _)| controlled_by.0 == source_client)
         else {
             warn!(
                 "Received a ShootRequest but couldn't determine from which \
@@ -150,7 +149,9 @@ fn handle_shoot_requests(
             continue;
         };
 
-        health.0 -= 8.0;
+        health.0 -= player_weapons.weapons[player_weapons.active_weapon_slot]
+            .game_weapon
+            .damage;
 
         let is_enemy = enemy_query.get(entity_hit).is_ok();
 
@@ -160,7 +161,8 @@ fn handle_shoot_requests(
                 enemy_entity: entity_hit,
             });
         } else {
-            let Ok((_, player_owned_by)) = player_query.get(entity_hit) else {
+            let Ok((_, player_owned_by, _)) = player_query.get(entity_hit)
+            else {
                 error!("Could not determine which player was hit");
                 continue;
             };

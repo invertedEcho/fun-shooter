@@ -32,13 +32,13 @@ pub struct PlayerState {
     pub shooting: bool,
     pub reloading: bool,
     pub dead: bool,
-    pub active_weapon_slot: usize,
 }
 
 #[derive(Component)]
 pub struct PlayerCash(pub usize);
 
 pub const DEFAULT_PLAYER_WEAPONS: PlayerWeapons = PlayerWeapons {
+    active_weapon_slot: 0,
     weapons: [
         PlayerWeapon {
             state: WeaponState {
