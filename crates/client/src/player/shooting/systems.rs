@@ -13,6 +13,7 @@ use shared::{
 };
 
 use crate::{
+    gameplay_debug::AppDebugState,
     particles::{BulletImpactEffectVariant, SpawnBulletImpactEffectMessage},
     player::{
         Player, PlayerDeathMessage,
@@ -78,8 +79,9 @@ pub fn handle_input(
         OurPlayerFilter,
     >,
     ui_state: Res<UiState>,
+    app_debug_state: Res<AppDebugState>,
 ) {
-    if ui_state.buy_overlay_visible {
+    if ui_state.buy_overlay_visible || app_debug_state.new_weapon_position {
         return;
     }
 
@@ -88,8 +90,8 @@ pub fn handle_input(
 
     let already_reloading = player_state.reloading;
 
-    let current_weapon =
-        &mut player_weapons.weapons[player_state.active_weapon_slot];
+    let active_weapon_slot = player_weapons.active_weapon_slot;
+    let current_weapon = &mut player_weapons.weapons[active_weapon_slot];
     let current_weapon_stats = &current_weapon.game_weapon;
     let current_weapon_state = &mut current_weapon.state;
 
@@ -303,10 +305,10 @@ pub fn handle_reload_player_weapon_message(
     for _ in message_reader.read() {
         debug!("received reload player weapon message message");
 
-        let active_slot = player_state.active_weapon_slot;
+        let active_weapon_slot = player_weapons.active_weapon_slot;
 
         let player_weapon_state =
-            &mut player_weapons.weapons[active_slot].state;
+            &mut player_weapons.weapons[active_weapon_slot].state;
 
         let reload_timer_duration = if player_weapon_state.loaded_ammo == 0 {
             FULL_RELOAD_TIME
@@ -321,10 +323,9 @@ pub fn handle_reload_player_weapon_message(
 
         player_state.reloading = true;
 
-        let weapon_kind = &player_weapons.weapons
-            [player_state.active_weapon_slot]
-            .game_weapon
-            .kind;
+        let active_weapon_slot = player_weapons.active_weapon_slot;
+        let weapon_kind =
+            &player_weapons.weapons[active_weapon_slot].game_weapon.kind;
         let weapon_position =
             get_position_for_weapon(weapon_kind, &AimType::Normal);
 
@@ -353,9 +354,9 @@ pub fn handle_player_weapon_reload_timer(
     if timer.just_finished() {
         player_state.reloading = false;
 
-        let active_slot = player_state.active_weapon_slot;
+        let active_weapon_slot = player_weapons.active_weapon_slot;
 
-        let current_weapon = &mut player_weapons.weapons[active_slot];
+        let current_weapon = &mut player_weapons.weapons[active_weapon_slot];
 
         let weapon_stats = &current_weapon.game_weapon;
         let active_weapon_state = &mut current_weapon.state;
@@ -378,19 +379,25 @@ pub fn handle_weapon_slot_change(
     mut commands: Commands,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut mouse_scroll_message_reader: MessageReader<MouseWheel>,
-    mut player_state: Single<&mut PlayerState, With<Owned>>,
+    player_query: Single<(&mut PlayerWeapons, &mut PlayerState), With<Owned>>,
     mut message_writer: MessageWriter<PlayerWeaponSlotChangeMessage>,
     existing_change_weapon_cooldown: Option<Res<ChangeWeaponCooldown>>,
     mut update_player_weapon_model_message_writer: MessageWriter<
         UpdatePlayerWeaponModel,
     >,
+    app_debug_state: Res<AppDebugState>,
 ) {
+    if app_debug_state.new_weapon_position {
+        return;
+    }
+
     // dont allow changing weapon if on cooldown
     if existing_change_weapon_cooldown.is_some() {
         return;
     }
+    let (mut player_weapons, mut player_state) = player_query.into_inner();
 
-    let current_slot = player_state.active_weapon_slot;
+    let current_slot = player_weapons.active_weapon_slot;
     let mut new_slot = current_slot;
 
     for mouse_scroll_message in mouse_scroll_message_reader.read() {
@@ -406,7 +413,7 @@ pub fn handle_weapon_slot_change(
     }
 
     if current_slot != new_slot {
-        player_state.active_weapon_slot = new_slot;
+        player_weapons.active_weapon_slot = new_slot;
         message_writer.write(PlayerWeaponSlotChangeMessage(new_slot));
         commands.insert_resource(ChangeWeaponCooldown(Timer::from_seconds(
             0.05,
@@ -452,12 +459,17 @@ pub fn handle_player_scope_aim(
         (&mut AimType, &PlayerState, &PlayerWeapons),
         With<Owned>,
     >,
+    app_debug_state: Res<AppDebugState>,
 ) {
+    if app_debug_state.new_weapon_position {
+        return;
+    }
+
     let (mut aim_type, player_state, player_weapons) =
         player_query.into_inner();
 
-    let current_weapon =
-        &player_weapons.weapons[player_state.active_weapon_slot];
+    let active_weapon_slot = player_weapons.active_weapon_slot;
+    let current_weapon = &player_weapons.weapons[active_weapon_slot];
 
     if current_weapon.game_weapon.kind == WeaponKind::P90 {
         return;

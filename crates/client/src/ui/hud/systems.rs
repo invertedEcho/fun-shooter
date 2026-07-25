@@ -36,18 +36,19 @@ pub fn spawn_player_hud(
     asset_server: Res<AssetServer>,
     mut commands: Commands,
     player_query: Query<
-        (&Health, &PlayerWeapons, &PlayerState),
+        (&Health, &PlayerWeapons),
         (Added<OurPlayerReady>, With<Owned>),
     >,
 ) {
-    for (player_health, player_weapons, player_state) in player_query {
+    for (player_health, player_weapons) in player_query {
         info!(
             "Spawning player hud because PlayerReady was added on a Player \
              with Owned component."
         );
 
-        let weapon_state =
-            &player_weapons.weapons[player_state.active_weapon_slot].state;
+        let active_weapon_slot = player_weapons.active_weapon_slot;
+
+        let weapon_state = &player_weapons.weapons[active_weapon_slot].state;
 
         commands
             .spawn((
@@ -99,12 +100,13 @@ pub fn spawn_player_hud(
                         for (index, player_weapon) in
                             player_weapons.weapons.iter().enumerate()
                         {
-                            let text_color =
-                                if player_state.active_weapon_slot == index {
-                                    UI_SELECTED
-                                } else {
-                                    UI_TEXT
-                                };
+                            let active_weapon_slot =
+                                player_weapons.active_weapon_slot;
+                            let text_color = if active_weapon_slot == index {
+                                UI_SELECTED
+                            } else {
+                                UI_TEXT
+                            };
 
                             parent.spawn((
                                 Text::new(format!(
@@ -251,8 +253,8 @@ pub fn update_player_ammo_text(
     >,
 ) {
     let (player_weapons, player_state) = player_query.into_inner();
-    let active_weapon =
-        &player_weapons.weapons[player_state.active_weapon_slot];
+    let active_weapon_slot = player_weapons.active_weapon_slot;
+    let active_weapon = &player_weapons.weapons[active_weapon_slot];
 
     ***player_loaded_ammo_text = active_weapon.state.loaded_ammo.to_string();
     ***player_carried_ammo_text = active_weapon.state.carried_ammo.to_string();

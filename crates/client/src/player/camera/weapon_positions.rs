@@ -42,7 +42,11 @@ pub fn get_position_for_weapon(
             AimType::Normal => NORMAL_POSITION_AK_47,
             AimType::Scoped => SCOPED_POSITION_ASSAULT_RIFLE,
         },
-        // we dont allow scoping with p90, its a spray n pray gun.
+        WeaponKind::SniperRifle => match aim_type {
+            AimType::Normal => vec3(0.3, -0.2, -0.4),
+            AimType::Scoped => vec3(0.0, -0.23, -0.3),
+        },
+        // we don't allow scoping with p90, its a spray n pray gun.
         WeaponKind::P90 => NORMAL_POSITION_P90,
     }
 }
@@ -62,9 +66,11 @@ pub fn get_muzzle_flash_position_for_weapon(
             AimType::Normal => NORMAL_POSITION_PISTOL,
             AimType::Scoped => SCOPED_POSITION_PISTOL,
         },
-        WeaponKind::AK47 | WeaponKind::P90 => match aim_type {
-            AimType::Normal => NORMAL_POSITION_ASSAULT_RIFLE,
-            AimType::Scoped => SCOPED_POSITION_ASSAULT_RIFLE,
-        },
+        WeaponKind::AK47 | WeaponKind::P90 | WeaponKind::SniperRifle => {
+            match aim_type {
+                AimType::Normal => NORMAL_POSITION_ASSAULT_RIFLE,
+                AimType::Scoped => SCOPED_POSITION_ASSAULT_RIFLE,
+            }
+        }
     }
 }

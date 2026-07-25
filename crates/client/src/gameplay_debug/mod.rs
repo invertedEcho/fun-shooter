@@ -37,6 +37,10 @@ pub struct AppDebugState {
     show_states_overlay: bool,
     invincibility: bool,
     pub interpolate_weapon_position: bool,
+    /// We use this in case we want to figure out right weapon position, e.g. we add a new weapon.
+    /// Because then we interact with bevy_inspector_egui, so we don't want scrolling to cycle through
+    /// weapons, mouse clicks shooting/scoping etc
+    pub new_weapon_position: bool,
 }
 
 impl Default for AppDebugState {
@@ -48,6 +52,7 @@ impl Default for AppDebugState {
             show_states_overlay: false,
             invincibility: false,
             interpolate_weapon_position: true,
+            new_weapon_position: false,
         }
     }
 }
@@ -339,10 +344,10 @@ fn developer_menu(
             ui.checkbox(&mut app_debug_state.interpolate_weapon_position, "");
         });
         ui.horizontal(|ui| {
-            if ui.button("Suicide").clicked() {
-                if let Ok(mut player_health) = player_health.single_mut() {
-                    player_health.0 -= DEFAULT_HEALTH;
-                }
+            if ui.button("Suicide").clicked()
+                && let Ok(mut player_health) = player_health.single_mut()
+            {
+                player_health.0 -= DEFAULT_HEALTH;
             }
         });
         if let Ok(mut player_cash) = player_cash.single_mut() {
@@ -352,6 +357,10 @@ fn developer_menu(
                 }
             });
         }
+        ui.horizontal(|ui| {
+            ui.label("New weapon position");
+            ui.checkbox(&mut app_debug_state.new_weapon_position, "");
+        })
     });
 }
 

@@ -4,7 +4,7 @@ use netvy::prelude::*;
 use shared::{
     AppRole, DEFAULT_HEALTH, GameConfigServer, GameMap,
     components::Health,
-    player::{Player, PlayerState},
+    player::Player,
     shooting::PlayerWeapons,
     world_object::{
         WorldObjectCollectibleKind, WorldObjectCollectibleServerSide,
@@ -112,7 +112,7 @@ pub fn detect_collision_world_object_with_player(
         &CollidingEntities,
     )>,
     mut player_query: Query<
-        (Entity, &mut Health, &mut PlayerWeapons, &PlayerState),
+        (Entity, &mut Health, &mut PlayerWeapons),
         With<Player>,
     >,
 ) {
@@ -124,7 +124,7 @@ pub fn detect_collision_world_object_with_player(
         match world_object.kind {
             WorldObjectCollectibleKind::Medkit => {
                 for collided_entity in colliding_entities.iter() {
-                    let Ok((player_entity, mut player_health, _, _)) =
+                    let Ok((player_entity, mut player_health, _)) =
                         player_query.get_mut(*collided_entity)
                     else {
                         continue;
@@ -143,12 +143,13 @@ pub fn detect_collision_world_object_with_player(
             }
             WorldObjectCollectibleKind::Ammunition => {
                 for collided_entity in colliding_entities.iter() {
-                    let Ok((_, _, mut player_weapons, player_state)) =
+                    let Ok((_, _, mut player_weapons)) =
                         player_query.get_mut(*collided_entity)
                     else {
                         continue;
                     };
-                    player_weapons.weapons[player_state.active_weapon_slot]
+                    let active_weapon_slot = player_weapons.active_weapon_slot;
+                    player_weapons.weapons[active_weapon_slot]
                         .state
                         .carried_ammo += 60;
                     world_object.active = false;
