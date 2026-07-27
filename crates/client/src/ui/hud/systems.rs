@@ -5,7 +5,7 @@ use shared::{
     GameMode, NextWaveTimer, WaveFinishedMessage,
     components::{DespawnTimer, Health},
     multiplayer_messages::PlayerHitMessage,
-    player::{AimType, Player, PlayerCash, PlayerReady, PlayerState},
+    player::{AimType, OurPlayerReady, Player, PlayerCash},
     shooting::PlayerWeapons,
 };
 
@@ -36,133 +36,88 @@ pub fn spawn_player_hud(
     asset_server: Res<AssetServer>,
     mut commands: Commands,
     player_query: Query<
-        (&Health, &PlayerWeapons, &PlayerState),
-        (Added<PlayerReady>, With<Owned>),
+        (&Health, &PlayerWeapons),
+        (Added<OurPlayerReady>, With<Owned>),
     >,
 ) {
-    let Ok((player_health, player_weapons, player_state)) =
-        player_query.single()
-    else {
-        return;
-    };
+    for (player_health, player_weapons) in player_query {
+        info!(
+            "Spawning player hud because PlayerReady was added on a Player \
+             with Owned component."
+        );
 
-    debug!(
-        "Spawning player hud because PlayerReady on our own player was \
-         inserted"
-    );
+        let active_weapon_slot = player_weapons.active_weapon_slot;
 
-    let weapon_state =
-        &player_weapons.weapons[player_state.active_weapon_slot].state;
+        let weapon_state = &player_weapons.weapons[active_weapon_slot].state;
 
-    commands
-        .spawn((
-            Node {
-                width: Val::Percent(100.0),
-                height: Val::Percent(100.0),
-                flex_direction: FlexDirection::Row,
-                justify_content: JustifyContent::SpaceBetween,
-                align_items: AlignItems::End,
-                padding: UiRect::all(Val::Px(16.0)),
-                ..default()
-            },
-            PlayerHud,
-            DespawnOnExit(AppState::InGame),
-            Name::new("PlayerHud"),
-            OnlyVisibleInGame,
-        ))
-        .with_children(|parent| {
-            parent
-                .spawn(Node {
-                    column_gap: Val::Px(16.0),
-                    ..default()
-                })
-                .with_children(|parent| {
-                    parent.spawn((
-                        Text::new("HP"),
-                        TextFont {
-                            font: FontSource::Handle(
-                                asset_server.load(ITALIC_GAME_FONT_PATH),
-                            ),
-                            ..default()
-                        },
-                    ));
-                    parent.spawn((
-                        Text::new(player_health.0.to_string()),
-                        PlayerHealthText,
-                        TextFont {
-                            font: FontSource::Handle(
-                                asset_server.load(ITALIC_GAME_FONT_PATH),
-                            ),
-                            ..default()
-                        },
-                    ));
-                });
-            parent
-                .spawn(Node {
-                    flex_direction: FlexDirection::Column,
+        commands
+            .spawn((
+                Node {
+                    width: Val::Percent(100.0),
+                    height: Val::Percent(100.0),
+                    flex_direction: FlexDirection::Row,
+                    justify_content: JustifyContent::SpaceBetween,
                     align_items: AlignItems::End,
-                    row_gap: px(8.0),
+                    padding: UiRect::all(Val::Px(16.0)),
                     ..default()
-                })
-                .with_children(|parent| {
-                    for (index, player_weapon) in
-                        player_weapons.weapons.iter().enumerate()
-                    {
-                        let text_color =
-                            if player_state.active_weapon_slot == index {
-                                UI_SELECTED
-                            } else {
-                                UI_TEXT
-                            };
-
+                },
+                PlayerHud,
+                DespawnOnExit(AppState::InGame),
+                Name::new("PlayerHud"),
+                OnlyVisibleInGame,
+            ))
+            .with_children(|parent| {
+                parent
+                    .spawn(Node {
+                        column_gap: Val::Px(16.0),
+                        ..default()
+                    })
+                    .with_children(|parent| {
                         parent.spawn((
-                            Text::new(format!(
-                                "{}: {}",
-                                index + 1,
-                                player_weapon.game_weapon.kind
-                            )),
+                            Text::new("HP"),
                             TextFont {
                                 font: FontSource::Handle(
                                     asset_server.load(ITALIC_GAME_FONT_PATH),
                                 ),
                                 ..default()
                             },
-                            TextColor(text_color),
-                            PlayerWeaponText(index),
                         ));
-                    }
-                    parent
-                        .spawn(Node {
-                            column_gap: Val::Px(16.0),
-                            ..default()
-                        })
-                        .with_children(|parent| {
-                            parent.spawn((
-                                Text::new(weapon_state.loaded_ammo.to_string()),
-                                PlayerLoadedAmmoText,
-                                TextFont {
-                                    font: FontSource::Handle(
-                                        asset_server
-                                            .load(ITALIC_GAME_FONT_PATH),
-                                    ),
-                                    ..default()
-                                },
-                            ));
-                            parent.spawn((
-                                Text::new("/"),
-                                TextFont {
-                                    font: FontSource::Handle(
-                                        asset_server
-                                            .load(ITALIC_GAME_FONT_PATH),
-                                    ),
-                                    ..default()
-                                },
-                            ));
-                            parent.spawn((
-                                Text::new(
-                                    weapon_state.carried_ammo.to_string(),
+                        parent.spawn((
+                            Text::new(player_health.0.to_string()),
+                            PlayerHealthText,
+                            TextFont {
+                                font: FontSource::Handle(
+                                    asset_server.load(ITALIC_GAME_FONT_PATH),
                                 ),
-                                PlayerCarriedAmmoText,
+                                ..default()
+                            },
+                        ));
+                    });
+                parent
+                    .spawn(Node {
+                        flex_direction: FlexDirection::Column,
+                        align_items: AlignItems::End,
+                        row_gap: px(8.0),
+                        ..default()
+                    })
+                    .with_children(|parent| {
+                        for (index, player_weapon) in
+                            player_weapons.weapons.iter().enumerate()
+                        {
+                            let active_weapon_slot =
+                                player_weapons.active_weapon_slot;
+                            let text_color = if active_weapon_slot == index {
+                                UI_SELECTED
+                            } else {
+                                UI_TEXT
+                            };
+
+                            parent.spawn((
+                                Text::new(format!(
+                                    "{}: {}",
+                                    index + 1,
+                                    player_weapon.game_weapon.kind
+                                )),
                                 TextFont {
                                     font: FontSource::Handle(
                                         asset_server
@@ -170,10 +125,56 @@ pub fn spawn_player_hud(
                                     ),
                                     ..default()
                                 },
+                                TextColor(text_color),
+                                PlayerWeaponText(index),
                             ));
-                        });
-                });
-        });
+                        }
+                        parent
+                            .spawn(Node {
+                                column_gap: Val::Px(16.0),
+                                ..default()
+                            })
+                            .with_children(|parent| {
+                                parent.spawn((
+                                    Text::new(
+                                        weapon_state.loaded_ammo.to_string(),
+                                    ),
+                                    PlayerLoadedAmmoText,
+                                    TextFont {
+                                        font: FontSource::Handle(
+                                            asset_server
+                                                .load(ITALIC_GAME_FONT_PATH),
+                                        ),
+                                        ..default()
+                                    },
+                                ));
+                                parent.spawn((
+                                    Text::new("/"),
+                                    TextFont {
+                                        font: FontSource::Handle(
+                                            asset_server
+                                                .load(ITALIC_GAME_FONT_PATH),
+                                        ),
+                                        ..default()
+                                    },
+                                ));
+                                parent.spawn((
+                                    Text::new(
+                                        weapon_state.carried_ammo.to_string(),
+                                    ),
+                                    PlayerCarriedAmmoText,
+                                    TextFont {
+                                        font: FontSource::Handle(
+                                            asset_server
+                                                .load(ITALIC_GAME_FONT_PATH),
+                                        ),
+                                        ..default()
+                                    },
+                                ));
+                            });
+                    });
+            });
+    }
 }
 
 pub fn show_crosshair(mut ui_state: ResMut<UiState>) {
@@ -250,10 +251,7 @@ pub fn update_player_health_text(
 }
 
 pub fn update_player_ammo_text(
-    player_query: Single<
-        (&PlayerWeapons, &PlayerState),
-        Changed<PlayerWeapons>,
-    >,
+    player_weapons: Single<&PlayerWeapons, Changed<PlayerWeapons>>,
     mut player_loaded_ammo_text: Single<
         &mut Text,
         (With<PlayerLoadedAmmoText>, Without<PlayerCarriedAmmoText>),
@@ -263,9 +261,8 @@ pub fn update_player_ammo_text(
         (With<PlayerCarriedAmmoText>, Without<PlayerLoadedAmmoText>),
     >,
 ) {
-    let (player_weapons, player_state) = player_query.into_inner();
-    let active_weapon =
-        &player_weapons.weapons[player_state.active_weapon_slot];
+    let active_weapon_slot = player_weapons.active_weapon_slot;
+    let active_weapon = &player_weapons.weapons[active_weapon_slot];
 
     ***player_loaded_ammo_text = active_weapon.state.loaded_ammo.to_string();
     ***player_carried_ammo_text = active_weapon.state.carried_ammo.to_string();

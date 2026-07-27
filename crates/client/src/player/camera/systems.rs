@@ -490,9 +490,8 @@ pub fn recoil_slerp_back(
     mut world_camera: Single<&mut Transform, With<WorldCamera>>,
     time: Res<Time>,
     mouse_input: Res<ButtonInput<MouseButton>>,
-    player_query: Single<(&PlayerWeapons, &PlayerState)>,
+    player_weapons: Single<&PlayerWeapons>,
 ) {
-    let (player_weapons, player_state) = player_query.into_inner();
     let active_weapon_slot = player_weapons.active_weapon_slot;
     let current_weapon = &player_weapons.weapons[active_weapon_slot];
     let has_ammo = current_weapon.state.loaded_ammo > 0;
