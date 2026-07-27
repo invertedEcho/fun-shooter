@@ -62,7 +62,8 @@ impl Plugin for PlayerHudPlugin {
         app.add_systems(
             Update,
             reflect_crosshair_visibility_from_ui_state.run_if(
-                resource_changed::<UiState>.and(in_state(AppState::InGame)),
+                resource_changed::<UiState>
+                    .and_then(in_state(AppState::InGame)),
             ),
         );
 

@@ -2,9 +2,7 @@ use ::shared::{AppRole, ServerRunMode, SharedPlugin};
 use bevy::{
     dev_tools::fps_overlay::{FpsOverlayPlugin, FrameTimeGraphConfig},
     diagnostic::FrameTimeDiagnosticsPlugin,
-    input_focus::InputDispatchPlugin,
     prelude::*,
-    ui_widgets::UiWidgetsPlugins,
     window::{PresentMode, WindowMode},
 };
 use bevy_embedded_assets::EmbeddedAssetPlugin;
@@ -99,12 +97,11 @@ fn main() {
 
     app.add_plugins(SharedPlugin);
 
-    app.add_plugins((UiWidgetsPlugins, InputDispatchPlugin));
     app.add_plugins(FrameTimeDiagnosticsPlugin::default());
     app.add_plugins(FpsOverlayPlugin {
         config: bevy::dev_tools::fps_overlay::FpsOverlayConfig {
             text_config: TextFont {
-                font_size: 14.,
+                font_size: FontSize::Px(14.),
                 ..default()
             },
             enabled: game_settings.graphics.fps_overlay_shown,

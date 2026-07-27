@@ -45,7 +45,7 @@ fn spawn_server_selection_screen(
             Name::new("Server Selection UI Root"),
         ))
         .with_children(|parent| {
-            parent.spawn((Text::new("Select a server")));
+            parent.spawn(Text::new("Select a server"));
             parent.spawn(build_common_button(
                 "Play on official server",
                 asset_server.load(DEFAULT_GAME_FONT_PATH),

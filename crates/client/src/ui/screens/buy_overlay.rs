@@ -41,7 +41,7 @@ impl Plugin for BuyScreenPlugin {
                     resource_changed::<UiState>
                         // TODO: why not run if its just been added? initial add should
                         // probbly start with false anyways.
-                        .and(not(resource_added::<UiState>)),
+                        .and_then(not(resource_added::<UiState>)),
                 ),
             )
             .add_systems(

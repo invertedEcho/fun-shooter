@@ -92,7 +92,7 @@ pub fn handle_spawn_player_camera_message(
                     ..default()
                 },
                 Skybox {
-                    image: asset_server.load("skyboxes/skybox_main.ktx2"),
+                    image: Some(asset_server.load("skyboxes/skybox_main.ktx2")),
                     brightness: 1000.0,
                     ..default()
                 },
@@ -122,7 +122,7 @@ pub fn handle_spawn_player_camera_message(
                 ))
                 .with_child((
                     Name::new("PlayerWeaponModel"),
-                    SceneRoot(weapon_model),
+                    WorldAssetRoot(weapon_model),
                     Transform {
                         translation: weapon_position,
                         scale: Vec3::splat(2.0),
@@ -371,7 +371,7 @@ pub fn update_player_weapon_model(
         player_weapon_model_transform.translation = weapon_position;
         commands
             .entity(player_weapon_model_entity)
-            .insert((SceneRoot(weapon_model),));
+            .insert((WorldAssetRoot(weapon_model),));
     }
 }
 
@@ -490,9 +490,8 @@ pub fn recoil_slerp_back(
     mut world_camera: Single<&mut Transform, With<WorldCamera>>,
     time: Res<Time>,
     mouse_input: Res<ButtonInput<MouseButton>>,
-    player_query: Single<(&PlayerWeapons, &PlayerState)>,
+    player_weapons: Single<&PlayerWeapons>,
 ) {
-    let (player_weapons, player_state) = player_query.into_inner();
     let active_weapon_slot = player_weapons.active_weapon_slot;
     let current_weapon = &player_weapons.weapons[active_weapon_slot];
     let has_ammo = current_weapon.state.loaded_ammo > 0;

@@ -5,7 +5,7 @@ use shared::{
     GameMode, NextWaveTimer, WaveFinishedMessage,
     components::{DespawnTimer, Health},
     multiplayer_messages::PlayerHitMessage,
-    player::{AimType, OurPlayerReady, Player, PlayerCash, PlayerState},
+    player::{AimType, OurPlayerReady, Player, PlayerCash},
     shooting::PlayerWeapons,
 };
 
@@ -76,7 +76,9 @@ pub fn spawn_player_hud(
                         parent.spawn((
                             Text::new("HP"),
                             TextFont {
-                                font: asset_server.load(ITALIC_GAME_FONT_PATH),
+                                font: FontSource::Handle(
+                                    asset_server.load(ITALIC_GAME_FONT_PATH),
+                                ),
                                 ..default()
                             },
                         ));
@@ -84,7 +86,9 @@ pub fn spawn_player_hud(
                             Text::new(player_health.0.to_string()),
                             PlayerHealthText,
                             TextFont {
-                                font: asset_server.load(ITALIC_GAME_FONT_PATH),
+                                font: FontSource::Handle(
+                                    asset_server.load(ITALIC_GAME_FONT_PATH),
+                                ),
                                 ..default()
                             },
                         ));
@@ -115,8 +119,10 @@ pub fn spawn_player_hud(
                                     player_weapon.game_weapon.kind
                                 )),
                                 TextFont {
-                                    font: asset_server
-                                        .load(ITALIC_GAME_FONT_PATH),
+                                    font: FontSource::Handle(
+                                        asset_server
+                                            .load(ITALIC_GAME_FONT_PATH),
+                                    ),
                                     ..default()
                                 },
                                 TextColor(text_color),
@@ -135,16 +141,20 @@ pub fn spawn_player_hud(
                                     ),
                                     PlayerLoadedAmmoText,
                                     TextFont {
-                                        font: asset_server
-                                            .load(ITALIC_GAME_FONT_PATH),
+                                        font: FontSource::Handle(
+                                            asset_server
+                                                .load(ITALIC_GAME_FONT_PATH),
+                                        ),
                                         ..default()
                                     },
                                 ));
                                 parent.spawn((
                                     Text::new("/"),
                                     TextFont {
-                                        font: asset_server
-                                            .load(ITALIC_GAME_FONT_PATH),
+                                        font: FontSource::Handle(
+                                            asset_server
+                                                .load(ITALIC_GAME_FONT_PATH),
+                                        ),
                                         ..default()
                                     },
                                 ));
@@ -154,8 +164,10 @@ pub fn spawn_player_hud(
                                     ),
                                     PlayerCarriedAmmoText,
                                     TextFont {
-                                        font: asset_server
-                                            .load(ITALIC_GAME_FONT_PATH),
+                                        font: FontSource::Handle(
+                                            asset_server
+                                                .load(ITALIC_GAME_FONT_PATH),
+                                        ),
                                         ..default()
                                     },
                                 ));
@@ -239,10 +251,7 @@ pub fn update_player_health_text(
 }
 
 pub fn update_player_ammo_text(
-    player_query: Single<
-        (&PlayerWeapons, &PlayerState),
-        Changed<PlayerWeapons>,
-    >,
+    player_weapons: Single<&PlayerWeapons, Changed<PlayerWeapons>>,
     mut player_loaded_ammo_text: Single<
         &mut Text,
         (With<PlayerLoadedAmmoText>, Without<PlayerCarriedAmmoText>),
@@ -252,7 +261,6 @@ pub fn update_player_ammo_text(
         (With<PlayerCarriedAmmoText>, Without<PlayerLoadedAmmoText>),
     >,
 ) {
-    let (player_weapons, player_state) = player_query.into_inner();
     let active_weapon_slot = player_weapons.active_weapon_slot;
     let active_weapon = &player_weapons.weapons[active_weapon_slot];
 

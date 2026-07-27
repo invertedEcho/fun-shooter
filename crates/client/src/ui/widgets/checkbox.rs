@@ -59,7 +59,7 @@ pub fn build_checkbox<T: Component>(
             Spawn((
                 Text::new(caption),
                 TextFont {
-                    font: font_handle,
+                    font: FontSource::Handle(font_handle),
                     ..default()
                 },
             )),

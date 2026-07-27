@@ -93,7 +93,9 @@ fn spawn_map_selection(
             parent.spawn(Node { ..default() }).with_child((
                 Text::new("Select a Map"),
                 TextFont {
-                    font: asset_server.load(DEFAULT_GAME_FONT_PATH),
+                    font: FontSource::Handle(
+                        asset_server.load(DEFAULT_GAME_FONT_PATH),
+                    ),
                     font_size: DEFAULT_FONT_SIZE,
                     ..default()
                 },
@@ -109,7 +111,9 @@ fn spawn_map_selection(
                 .with_child((
                     Text::new("Tiny Town"),
                     TextFont {
-                        font: asset_server.load(DEFAULT_GAME_FONT_PATH),
+                        font: FontSource::Handle(
+                            asset_server.load(DEFAULT_GAME_FONT_PATH),
+                        ),
                         font_size: DEFAULT_FONT_SIZE,
                         ..default()
                     },
@@ -129,7 +133,9 @@ fn spawn_map_selection(
                 .with_child((
                     Text::new("Medium Plastic"),
                     TextFont {
-                        font: asset_server.load(DEFAULT_GAME_FONT_PATH),
+                        font: FontSource::Handle(
+                            asset_server.load(DEFAULT_GAME_FONT_PATH),
+                        ),
                         font_size: DEFAULT_FONT_SIZE,
                         ..default()
                     },

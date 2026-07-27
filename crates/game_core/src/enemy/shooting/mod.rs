@@ -25,7 +25,7 @@ impl Plugin for EnemyShootingPlugin {
             )
                 .run_if(
                     resource_exists::<GameStateWave>
-                        .and(in_state(GameStateServer::Running)),
+                        .and_then(in_state(GameStateServer::Running)),
                 ),
         );
     }

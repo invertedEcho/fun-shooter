@@ -120,7 +120,7 @@ fn build_debug_overlay_item_text<T: Component>(
             (
                 Text::new(format!("Current {}: ", description)),
                 TextFont {
-                    font_size: DEBUG_OVERLAY_TEXT_SIZE,
+                    font_size: FontSize::Px(DEBUG_OVERLAY_TEXT_SIZE),
                     ..default()
                 },
             ),
@@ -128,10 +128,10 @@ fn build_debug_overlay_item_text<T: Component>(
                 Text::new("None"),
                 marker_component,
                 TextFont {
-                    font_size: DEBUG_OVERLAY_TEXT_SIZE,
+                    font_size: FontSize::Px(DEBUG_OVERLAY_TEXT_SIZE),
                     ..default()
                 },
-                TextLayout::new_with_linebreak(LineBreak::WordBoundary)
+                TextLayout::linebreak(LineBreak::WordBoundary)
             )
         ],
     )

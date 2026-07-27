@@ -28,7 +28,7 @@ pub fn spawn_controls_settings_tab_content(
                     parent.spawn((
                         Text::new("Nothing here yet..."),
                         TextFont {
-                            font: font_handle.clone(),
+                            font: FontSource::Handle(font_handle.clone()),
                             ..default()
                         },
                     ));

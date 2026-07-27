@@ -44,7 +44,7 @@ pub fn spawn_audio_settings_tab_content(
                     parent.spawn((
                         Text::new("Sound Volume"),
                         TextFont {
-                            font: font_handle.clone(),
+                            font: FontSource::Handle(font_handle.clone()),
                             ..default()
                         },
                     ));
@@ -68,7 +68,7 @@ pub fn spawn_audio_settings_tab_content(
                     parent.spawn((
                         Text::new("Music Volume"),
                         TextFont {
-                            font: font_handle,
+                            font: FontSource::Handle(font_handle),
                             ..default()
                         },
                     ));

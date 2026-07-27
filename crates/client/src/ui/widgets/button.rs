@@ -23,7 +23,7 @@ pub fn build_common_button<T: Component>(
         children![
             Text::new(button_text),
             TextFont {
-                font: font_handle,
+                font: FontSource::Handle(font_handle),
                 ..default()
             },
             TextColor(UI_TEXT),

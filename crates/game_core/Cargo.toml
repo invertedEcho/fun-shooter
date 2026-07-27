@@ -4,17 +4,20 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-avian_rerecast = { version = "0.4.0" }
+avian_rerecast = { git = "https://github.com/HeyPlayGames/rerecast", branch = "bevy-0-19", version = "0.5.1", default-features = false }
 avian3d = { workspace = true }
 bevy = { workspace = true }
-bevy_common_assets = { version = "0.15.0", features = ["json"] }
-bevy_landmass = "0.11.0"
-bevy_rerecast = { version = "0.4.0", default-features = false, features = [
+bevy_common_assets = { version = "0.17.0", features = ["json"] }
+bevy_landmass = { git = "https://github.com/extrawurst/landmass", branch = "landmass-rerecast-bevy-0.19", version = "0.12.0" }
+bevy_rerecast = { git = "https://github.com/HeyPlayGames/rerecast", branch = "bevy-0-19", version = "0.4.0", default-features = false, features = [
   "editor_integration"
 ] }
-landmass_rerecast = "0.2.0"
+landmass_rerecast = { git = "https://github.com/extrawurst/landmass.git", branch = "landmass-rerecast-bevy-0.19", version = "0.2.0" }
 netvy = { workspace = true }
 rand = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 shared.workspace = true
+
+[lints]
+workspace = true

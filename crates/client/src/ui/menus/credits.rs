@@ -39,7 +39,7 @@ fn spawn_credits(mut commands: Commands, asset_server: Res<AssetServer>) {
             parent.spawn((
                 Text::new("Credits"),
                 TextFont {
-                    font: asset_server.load(DEFAULT_GAME_FONT_PATH),
+                    font: FontSource::Handle(asset_server.load(DEFAULT_GAME_FONT_PATH)),
                     font_size: TITLE_FONT_SIZE,
                     ..default()
                 },
