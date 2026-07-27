@@ -2,7 +2,7 @@ use bevy::{
     picking::hover::Hovered,
     prelude::*,
     ui_widgets::{
-        CoreSliderDragState, Slider, SliderRange, SliderThumb, SliderValue,
+        Slider, SliderDragState, SliderRange, SliderThumb, SliderValue,
         TrackClick,
     },
 };
@@ -33,6 +33,7 @@ pub fn build_slider<T: Component>(
         marker_component,
         Slider {
             track_click: TrackClick::Snap,
+            ..default()
         },
         SliderValue(value),
         SliderRange::new(min, max),
@@ -81,7 +82,7 @@ pub fn build_slider<T: Component>(
 type AnyInteractionWithSlider = Or<(
     Changed<SliderValue>,
     Changed<Hovered>,
-    Changed<CoreSliderDragState>,
+    Changed<SliderDragState>,
 )>;
 
 /// Update the visuals of the slider based on the slider state.
@@ -92,7 +93,7 @@ pub fn update_slider_style(
             &SliderValue,
             &SliderRange,
             &Hovered,
-            &CoreSliderDragState,
+            &SliderDragState,
         ),
         AnyInteractionWithSlider,
     >,

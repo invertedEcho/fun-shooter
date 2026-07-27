@@ -67,7 +67,9 @@ fn spawn_wave_game_mode_death_screen(
                 .with_child((
                     Text::new("You are dead"),
                     TextFont {
-                        font: asset_server.load(DEFAULT_GAME_FONT_PATH),
+                        font: FontSource::Handle(
+                            asset_server.load(DEFAULT_GAME_FONT_PATH),
+                        ),
                         font_size: DEFAULT_FONT_SIZE,
                         ..default()
                     },
@@ -89,7 +91,9 @@ fn spawn_wave_game_mode_death_screen(
                             game_state_wave.current_wave
                         )),
                         TextFont {
-                            font: asset_server.load(DEFAULT_GAME_FONT_PATH),
+                            font: FontSource::Handle(
+                                asset_server.load(DEFAULT_GAME_FONT_PATH),
+                            ),
                             font_size: DEFAULT_FONT_SIZE,
                             ..default()
                         },
@@ -110,7 +114,9 @@ fn spawn_wave_game_mode_death_screen(
                             game_state_wave.enemies_killed
                         )),
                         TextFont {
-                            font: asset_server.load(DEFAULT_GAME_FONT_PATH),
+                            font: FontSource::Handle(
+                                asset_server.load(DEFAULT_GAME_FONT_PATH),
+                            ),
                             font_size: DEFAULT_FONT_SIZE,
                             ..default()
                         },
@@ -135,7 +141,9 @@ fn spawn_wave_game_mode_death_screen(
                         .with_child((
                             Text::new(restart_button_text),
                             TextFont {
-                                font: asset_server.load(DEFAULT_GAME_FONT_PATH),
+                                font: FontSource::Handle(
+                                    asset_server.load(DEFAULT_GAME_FONT_PATH),
+                                ),
                                 font_size: DEFAULT_FONT_SIZE,
                                 ..default()
                             },
@@ -145,7 +153,9 @@ fn spawn_wave_game_mode_death_screen(
                         .with_child((
                             Text::new("Exit to Main Menu"),
                             TextFont {
-                                font: asset_server.load(DEFAULT_GAME_FONT_PATH),
+                                font: FontSource::Handle(
+                                    asset_server.load(DEFAULT_GAME_FONT_PATH),
+                                ),
                                 font_size: DEFAULT_FONT_SIZE,
                                 ..default()
                             },

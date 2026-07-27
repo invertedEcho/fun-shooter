@@ -13,12 +13,27 @@ async-compat = "0.2.5"
 avian3d = "0.7.0"
 bevy = "0.19.0"
 bevy-inspector-egui = "0.37.0"
-netvy = { version = "0.3.0" }
+netvy = { path = "../netvy/crates/plugin/" }
 rand = "0.9.2"
 serde = "1.0.228"
 serde_json = "1.0.145"
 shared = { path = "./crates/shared", version = "0.1.0" }
 tokio = { version = "1.49.0", features = ["io-util", "net"] }
+
+[workspace.lints.clippy]
+# Bevy supplies arguments to systems via dependency injection, so it's natural for systems to
+# request more than 7 arguments, which would undesirably trigger this lint.
+too_many_arguments = "allow"
+# Queries may access many components, which would undesirably trigger this lint.
+type_complexity = "allow"
+
+[patch.crates-io]
+avian_rerecast = { git = "https://github.com/HeyPlayGames/rerecast", branch = "bevy-0-19" }
+bevy_landmass = { git = "https://github.com/extrawurst/landmass", branch = "landmass-rerecast-bevy-0.19" }
+bevy_rerecast = { git = "https://github.com/HeyPlayGames/rerecast", branch = "bevy-0-19" }
+landmass = { git = "https://github.com/extrawurst/landmass", branch = "landmass-rerecast-bevy-0.19" }
+landmass_rerecast = { git = "https://github.com/extrawurst/landmass", branch = "landmass-rerecast-bevy-0.19" }
+rerecast = { git = "https://github.com/HeyPlayGames/rerecast", branch = "bevy-0-19" }
 
 # Enable a small amount of optimization in the dev profile.
 [profile.dev]

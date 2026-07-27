@@ -80,7 +80,9 @@ pub fn spawn_player_hud(
                     parent.spawn((
                         Text::new("HP"),
                         TextFont {
-                            font: asset_server.load(ITALIC_GAME_FONT_PATH),
+                            font: FontSource::Handle(
+                                asset_server.load(ITALIC_GAME_FONT_PATH),
+                            ),
                             ..default()
                         },
                     ));
@@ -88,7 +90,9 @@ pub fn spawn_player_hud(
                         Text::new(player_health.0.to_string()),
                         PlayerHealthText,
                         TextFont {
-                            font: asset_server.load(ITALIC_GAME_FONT_PATH),
+                            font: FontSource::Handle(
+                                asset_server.load(ITALIC_GAME_FONT_PATH),
+                            ),
                             ..default()
                         },
                     ));
@@ -118,7 +122,9 @@ pub fn spawn_player_hud(
                                 player_weapon.game_weapon.kind
                             )),
                             TextFont {
-                                font: asset_server.load(ITALIC_GAME_FONT_PATH),
+                                font: FontSource::Handle(
+                                    asset_server.load(ITALIC_GAME_FONT_PATH),
+                                ),
                                 ..default()
                             },
                             TextColor(text_color),
@@ -135,16 +141,20 @@ pub fn spawn_player_hud(
                                 Text::new(weapon_state.loaded_ammo.to_string()),
                                 PlayerLoadedAmmoText,
                                 TextFont {
-                                    font: asset_server
-                                        .load(ITALIC_GAME_FONT_PATH),
+                                    font: FontSource::Handle(
+                                        asset_server
+                                            .load(ITALIC_GAME_FONT_PATH),
+                                    ),
                                     ..default()
                                 },
                             ));
                             parent.spawn((
                                 Text::new("/"),
                                 TextFont {
-                                    font: asset_server
-                                        .load(ITALIC_GAME_FONT_PATH),
+                                    font: FontSource::Handle(
+                                        asset_server
+                                            .load(ITALIC_GAME_FONT_PATH),
+                                    ),
                                     ..default()
                                 },
                             ));
@@ -154,8 +164,10 @@ pub fn spawn_player_hud(
                                 ),
                                 PlayerCarriedAmmoText,
                                 TextFont {
-                                    font: asset_server
-                                        .load(ITALIC_GAME_FONT_PATH),
+                                    font: FontSource::Handle(
+                                        asset_server
+                                            .load(ITALIC_GAME_FONT_PATH),
+                                    ),
                                     ..default()
                                 },
                             ));

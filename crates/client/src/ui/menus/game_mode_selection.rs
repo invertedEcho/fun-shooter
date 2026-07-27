@@ -74,7 +74,9 @@ fn spawn_game_mode_selection_screen(
                 .with_child((
                     Text::new("Select a game mode"),
                     TextFont {
-                        font: asset_server.load(DEFAULT_GAME_FONT_PATH),
+                        font: FontSource::Handle(
+                            asset_server.load(DEFAULT_GAME_FONT_PATH),
+                        ),
                         font_size: DEFAULT_FONT_SIZE,
                         ..default()
                     },

@@ -49,6 +49,8 @@
               libXi
               libXcursor
               libxkbcommon
+              wayland
+              libxkbcommon
             ];
           };
       }

@@ -339,10 +339,10 @@ fn developer_menu(
             ui.checkbox(&mut app_debug_state.interpolate_weapon_position, "");
         });
         ui.horizontal(|ui| {
-            if ui.button("Suicide").clicked() {
-                if let Ok(mut player_health) = player_health.single_mut() {
-                    player_health.0 -= DEFAULT_HEALTH;
-                }
+            if ui.button("Suicide").clicked()
+                && let Ok(mut player_health) = player_health.single_mut()
+            {
+                player_health.0 -= DEFAULT_HEALTH;
             }
         });
         if let Ok(mut player_cash) = player_cash.single_mut() {

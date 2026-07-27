@@ -55,7 +55,9 @@ fn spawn_pause_menu(asset_server: Res<AssetServer>, mut commands: Commands) {
                 .with_child((
                     Text::new("Paused"),
                     TextFont {
-                        font: asset_server.load(DEFAULT_GAME_FONT_PATH),
+                        font: FontSource::Handle(
+                            asset_server.load(DEFAULT_GAME_FONT_PATH),
+                        ),
                         font_size: DEFAULT_FONT_SIZE,
                         ..default()
                     },
@@ -70,7 +72,9 @@ fn spawn_pause_menu(asset_server: Res<AssetServer>, mut commands: Commands) {
                 .with_child((
                     Text::new("Resume"),
                     TextFont {
-                        font: asset_server.load(DEFAULT_GAME_FONT_PATH),
+                        font: FontSource::Handle(
+                            asset_server.load(DEFAULT_GAME_FONT_PATH),
+                        ),
                         font_size: DEFAULT_FONT_SIZE,
                         ..default()
                     },
@@ -84,7 +88,9 @@ fn spawn_pause_menu(asset_server: Res<AssetServer>, mut commands: Commands) {
                 .with_child((
                     Text::new("Exit to Main Menu"),
                     TextFont {
-                        font: asset_server.load(DEFAULT_GAME_FONT_PATH),
+                        font: FontSource::Handle(
+                            asset_server.load(DEFAULT_GAME_FONT_PATH),
+                        ),
                         font_size: DEFAULT_FONT_SIZE,
                         ..default()
                     },

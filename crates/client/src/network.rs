@@ -20,8 +20,6 @@ use shared::utils::network::{
 use crate::character_controller::components::CharacterControllerBundle;
 use crate::game_flow::states::{AppState, ClientLoadingState, InGameState};
 
-const CLIENT_PORT: u16 = 0;
-
 pub const GENERIC_NO_CONNECTION_ERROR_MESSAGE: &str =
     "Failed to connect to Game Server. Please verify your internet connection \
      works. The Game Server may also be currently unavailable.";

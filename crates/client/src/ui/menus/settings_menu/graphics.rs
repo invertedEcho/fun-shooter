@@ -55,7 +55,7 @@ pub fn spawn_graphics_settings_tab_content(
                         children![
                             Text::new("Borderless Fullscreen"),
                             TextFont {
-                                font: font_handle.clone(),
+                                font: FontSource::Handle(font_handle.clone()),
                                 font_size: DEFAULT_FONT_SIZE,
                                 ..default()
                             }
@@ -93,7 +93,7 @@ pub fn spawn_graphics_settings_tab_content(
                         children![
                             Text::new("FPS Overlay shown"),
                             TextFont {
-                                font: font_handle.clone(),
+                                font: FontSource::Handle(font_handle.clone()),
                                 font_size: DEFAULT_FONT_SIZE,
                                 ..default()
                             }

@@ -3,10 +3,7 @@ use shared::shooting::WeaponKind;
 
 use crate::{
     game_flow::states::InGameState,
-    shared::systems::{
-        disable_culling_for_skinned_meshes, hide_only_visible_in_game,
-        show_only_visible_in_game,
-    },
+    shared::systems::{hide_only_visible_in_game, show_only_visible_in_game},
 };
 
 pub mod components;
@@ -16,7 +13,6 @@ pub struct CommonPlugin;
 
 impl Plugin for CommonPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, disable_culling_for_skinned_meshes);
         app.add_systems(
             OnEnter(InGameState::Playing),
             show_only_visible_in_game,

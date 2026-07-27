@@ -95,7 +95,7 @@ pub fn handle_spawn_player_camera_message(
                     ..default()
                 },
                 Skybox {
-                    image: asset_server.load("skyboxes/skybox_main.ktx2"),
+                    image: Some(asset_server.load("skyboxes/skybox_main.ktx2")),
                     brightness: 1000.0,
                     ..default()
                 },
