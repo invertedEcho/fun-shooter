@@ -42,7 +42,7 @@ pub fn hide_only_visible_in_game(
 pub fn show_only_visible_in_game(
     query: Query<&mut Visibility, With<OnlyVisibleInGame>>,
 ) {
-    info!("Showing all OnlyVisibleInGame entities");
+    debug!("Showing all OnlyVisibleInGame entities");
     for mut visibility in query {
         *visibility = Visibility::Visible;
     }

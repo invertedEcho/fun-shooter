@@ -275,7 +275,7 @@ fn handle_client_commands(
     }
 
     for message in message_reader.read() {
-        info!(
+        debug!(
             "Handling ClientCommand {:?} from {:?}",
             message.message, message.source_client
         );

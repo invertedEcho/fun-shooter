@@ -18,18 +18,6 @@ pub struct ProtocolPlugin;
 
 impl Plugin for ProtocolPlugin {
     fn build(&self, app: &mut App) {
-        // app.add_channel::<SequencedUnreliableChannel>(ChannelSettings {
-        //     mode: ChannelMode::SequencedUnreliable,
-        //     ..default()
-        // })
-        // .add_direction(NetworkDirection::Bidirectional);
-        //
-        // app.add_channel::<OrderedReliableChannel>(ChannelSettings {
-        //     mode: ChannelMode::OrderedReliable(ReliableSettings::default()),
-        //     ..default()
-        // })
-        // .add_direction(NetworkDirection::Bidirectional);
-        //
         app.register_network_message::<ShootRequest>(
             MessageDirection::ClientToServer,
         );
@@ -56,6 +44,7 @@ impl Plugin for ProtocolPlugin {
 
         app.register_component::<Player>();
         app.register_component::<PlayerState>();
+        app.register_component::<PlayerWeapons>();
         app.register_component::<PlayerWeapons>();
 
         app.register_component::<Health>();

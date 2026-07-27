@@ -29,5 +29,6 @@ pub fn get_fire_delay_by_weapon_kind(weapon_type: &WeaponKind) -> f32 {
         WeaponKind::Glock => 0.3,
         WeaponKind::AK47 => 0.115,
         WeaponKind::P90 => 0.05,
+        WeaponKind::SniperRifle => 0.5,
     }
 }

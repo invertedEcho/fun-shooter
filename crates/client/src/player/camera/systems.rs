@@ -40,6 +40,7 @@ pub fn setup_player_cameras(
     mut message_writer: MessageWriter<SpawnPlayerCamera>,
 ) {
     for added_player in added_players {
+        info!("Player was added with Owned component, spawning player camera");
         message_writer.write(SpawnPlayerCamera(added_player));
     }
 }
@@ -56,12 +57,8 @@ pub fn handle_spawn_player_camera_message(
             error!("Cant spawn player camera, OurPeerId doesnt exist");
             return;
         };
-        info!(
-            "Spawning new player camera, received SpawnPlayerCamera message!"
-        );
-
         for main_menu_camera in main_menu_camera {
-            info!("Despawning main menu camera before spawning player camera");
+            debug!("Despawning main menu camera before spawning player camera");
             commands.entity(main_menu_camera).despawn();
         }
         // FIXME: remove manually inserting Authority component once i figure out a solution how to
@@ -318,8 +315,9 @@ pub fn weapon_sway(
     mouse_motion: Res<AccumulatedMouseMotion>,
     mut transform: Single<&mut Transform, With<PlayerWeaponModel>>,
     ui_state: Res<UiState>,
+    app_debug_state: Res<AppDebugState>,
 ) {
-    if ui_state.buy_overlay_visible {
+    if ui_state.buy_overlay_visible || app_debug_state.new_weapon_position {
         return;
     }
 
@@ -351,18 +349,17 @@ pub fn update_player_weapon_model(
         (Entity, &mut Transform),
         With<PlayerWeaponModel>,
     >,
-    player_query: Single<(&PlayerWeapons, &AimType, &PlayerState)>,
+    player_query: Single<(&PlayerWeapons, &AimType)>,
 ) {
     let (player_weapon_model_entity, mut player_weapon_model_transform) =
         player_weapon_model_query.into_inner();
 
-    let (player_weapons, aim_type, player_state) = player_query.into_inner();
+    let (player_weapons, aim_type) = player_query.into_inner();
 
     for _ in message_reader.read() {
-        let weapon_kind = &player_weapons.weapons
-            [player_state.active_weapon_slot]
-            .game_weapon
-            .kind;
+        let active_weapon_slot = player_weapons.active_weapon_slot;
+        let weapon_kind =
+            &player_weapons.weapons[active_weapon_slot].game_weapon.kind;
 
         let weapon_position = get_position_for_weapon(weapon_kind, aim_type);
 
@@ -385,14 +382,14 @@ pub fn spawn_muzzle_flash(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut player_shot_message_reader: MessageReader<PlayerWeaponFiredMessage>,
     player_weapon_model_entity: Single<Entity, With<PlayerWeaponModel>>,
-    player_query: Single<(&PlayerWeapons, &AimType, &PlayerState)>,
+    player_query: Single<(&PlayerWeapons, &AimType)>,
 ) {
-    let (player_weapons, aim_type, player_state) = player_query.into_inner();
+    let (player_weapons, aim_type) = player_query.into_inner();
 
     for _ in player_shot_message_reader.read() {
-        let active_weapon = player_state.active_weapon_slot;
+        let active_weapon_slot = player_weapons.active_weapon_slot;
         let muzzle_flash_position = get_muzzle_flash_position_for_weapon(
-            &player_weapons.weapons[active_weapon].game_weapon.kind,
+            &player_weapons.weapons[active_weapon_slot].game_weapon.kind,
             aim_type,
         );
 
@@ -443,9 +440,9 @@ pub fn interpolate_weapon_position(
 
     let reloading = player_state.reloading;
 
-    let weapon_kind = &player_weapons.weapons[player_state.active_weapon_slot]
-        .game_weapon
-        .kind;
+    let active_weapon_slot = player_weapons.active_weapon_slot;
+    let weapon_kind =
+        &player_weapons.weapons[active_weapon_slot].game_weapon.kind;
 
     let mut target_destination = get_position_for_weapon(weapon_kind, aim_type);
 
@@ -454,7 +451,7 @@ pub fn interpolate_weapon_position(
             WeaponKind::Glock => {
                 target_destination.y -= 0.25;
             }
-            WeaponKind::AK47 | WeaponKind::P90 => {
+            WeaponKind::AK47 | WeaponKind::P90 | WeaponKind::SniperRifle => {
                 target_destination.y -= 0.3;
             }
         }
@@ -496,8 +493,8 @@ pub fn recoil_slerp_back(
     player_query: Single<(&PlayerWeapons, &PlayerState)>,
 ) {
     let (player_weapons, player_state) = player_query.into_inner();
-    let current_weapon =
-        &player_weapons.weapons[player_state.active_weapon_slot];
+    let active_weapon_slot = player_weapons.active_weapon_slot;
+    let current_weapon = &player_weapons.weapons[active_weapon_slot];
     let has_ammo = current_weapon.state.loaded_ammo > 0;
 
     // dont slerp back, otherwise recoil will never accumulate
