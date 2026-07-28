@@ -31,6 +31,7 @@
                 (rust-bin.fromRustupToolchainFile ./rust-toolchain.toml)
                 clang
                 mold
+                just
               ]
               ++ lib.optionals (lib.strings.hasInfix "linux" system) [
                 wayland
