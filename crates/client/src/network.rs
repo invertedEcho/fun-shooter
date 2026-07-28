@@ -9,16 +9,16 @@ use shared::character_controller::{
 };
 use shared::multiplayer_messages::ConfirmRespawn;
 use shared::player::Player;
-use shared::utils::network::{
-    SERVER_PORT, get_dedicated_server_socket_addr_client_side,
-};
+use shared::utils::network::{SERVER_PORT, resolve_server_address};
 
 // use crate::auth::{
 //     ConnectTokenRequestTask, fetch_connect_token,
 //     get_connect_token_from_auth_backend,
 // };
 use crate::character_controller::components::CharacterControllerBundle;
-use crate::game_flow::states::{AppState, ClientLoadingState, InGameState};
+use crate::game_flow::states::{
+    AppState, ClientLoadingState, InGameState, MainMenuState,
+};
 
 pub const GENERIC_NO_CONNECTION_ERROR_MESSAGE: &str =
     "Failed to connect to Game Server. Please verify your internet connection \
@@ -207,13 +207,15 @@ fn spawn_host_client(
 fn handle_connect_to_dedicated_server(
     mut commands: Commands,
     mut message_reader: MessageReader<ConnectToDedicatedServer>,
+    mut app_state: ResMut<NextState<AppState>>,
 ) {
     for message in message_reader.read() {
         info!("READ ConnectToDedicatedServer message");
-        let Some(socket_address) = get_dedicated_server_socket_addr_client_side(
-            &message.server_address,
-        ) else {
+        let Some(socket_address) =
+            resolve_server_address(&message.server_address)
+        else {
             error!("Failed to resolve dedicated server address!");
+            app_state.set(AppState::Disconnected);
             continue;
         };
         let client_entity =

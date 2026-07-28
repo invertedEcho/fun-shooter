@@ -1,6 +1,6 @@
 ﻿use bevy::prelude::*;
 use netvy::NetvyMode;
-use shared::{AppRole, StartGame, utils::network::OFFICIAL_GAME_SERVER};
+use shared::{AppRole, StartGame};
 
 use crate::{
     game_flow::states::{
@@ -100,22 +100,12 @@ fn spawn_main_menu(asset_server: Res<AssetServer>, mut commands: Commands) {
 }
 
 fn handle_main_menu_button_pressed(
-    main_menu_button_interactions: Query<
-        (&Interaction, &MainMenuButton),
-        Changed<Interaction>,
-    >,
+    button_query: Query<(&Interaction, &MainMenuButton), Changed<Interaction>>,
     mut next_main_menu_state: ResMut<NextState<MainMenuState>>,
-    mut next_app_state: ResMut<NextState<AppState>>,
     mut next_app_role: ResMut<NextState<AppRole>>,
-    mut next_client_loading_state: ResMut<NextState<ClientLoadingState>>,
-    mut message_writer: MessageWriter<StartGame>,
-    pending_game_config: Res<PendingGameConfigClient>,
-    mut connect_to_dedicated_server_message_writer: MessageWriter<
-        ConnectToDedicatedServer,
-    >,
     mut netvy_mode: ResMut<NetvyMode>,
 ) {
-    for (interaction, main_menu_button) in main_menu_button_interactions {
+    for (interaction, main_menu_button) in button_query {
         let Interaction::Pressed = interaction else {
             continue;
         };
@@ -126,22 +116,7 @@ fn handle_main_menu_button_pressed(
                 *netvy_mode = NetvyMode::HostClient;
             }
             MainMenuButton::Multiplayer => {
-                // next_main_menu_state.set(MainMenuState::ServerSelection);
-                *netvy_mode = NetvyMode::Client;
-                next_app_state.set(AppState::LoadingGame);
-                next_app_role.set(AppRole::ClientOnly);
-                // NOTE: we skip state StartingServer, because in multiplayer we dont start a
-                // server ourself but connect to the dedicated server
-                next_client_loading_state
-                    .set(ClientLoadingState::ConnectingToServer);
-
-                connect_to_dedicated_server_message_writer.write(
-                    ConnectToDedicatedServer {
-                        server_address: OFFICIAL_GAME_SERVER.to_string(),
-                    },
-                );
-
-                message_writer.write(StartGame(pending_game_config.0));
+                next_main_menu_state.set(MainMenuState::ServerSelection);
             }
             MainMenuButton::SettingsMainMenu => {
                 next_main_menu_state.set(MainMenuState::Settings);

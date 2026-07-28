@@ -124,12 +124,15 @@ fn handle_shoot_requests(
             .find(|(_, controlled_by, _)| controlled_by.0 == source_client)
         else {
             warn!(
+                ?source_client,
+                ?player_query,
                 "Received a ShootRequest but couldn't determine from which \
-                 player this came from. (peer_id={:?}, player_query={:?})",
-                message.source_peer_id, player_query
+                 player this came from"
             );
             continue;
         };
+
+        debug!(?shooter_entity, ?source_client, "Received a shoot request");
 
         let Some(first_hit) = spatial_query.cast_ray(
             message.origin,
@@ -146,6 +149,10 @@ fn handle_shoot_requests(
 
         // if we cant find health, this collider is just an obstacle
         let Ok(mut health) = health_query.get_mut(entity_hit) else {
+            debug!(
+                "Entity hit was nothing that has health component: {}",
+                entity_hit
+            );
             continue;
         };
 
@@ -178,19 +185,16 @@ fn handle_shoot_requests(
             let entity_killed = first_hit.entity;
             commands.entity(entity_killed).insert(ColliderDisabled);
 
-            match game_score.players.get_mut(&message.source_peer_id) {
+            match game_score.players.get_mut(&source_client) {
                 Some(player) => {
-                    debug!(
-                        "increased kill count of player with peer_id: {}",
-                        message.source_peer_id.0
-                    );
+                    debug!(?source_client, "increased kill count of player");
                     player.kills += 1;
                 }
                 None => {
                     warn!(
-                        "Failed to find player in game score by peer_id \
-                         {}\nGame score: {:?}",
-                        message.source_peer_id.0, *game_score
+                        ?source_client,
+                        game_score = ?*game_score,
+                        "Failed to find player in game score by peer_id"
                     )
                 }
             }
@@ -200,8 +204,7 @@ fn handle_shoot_requests(
             if *game_mode == GameMode::Waves {
                 return;
             };
-            let Some(player_score) =
-                game_score.players.get_mut(&message.source_peer_id)
+            let Some(player_score) = game_score.players.get_mut(&source_client)
             else {
                 warn!("Failed to find client of player that was killed");
                 continue;

@@ -23,7 +23,7 @@ pub const AUTH_BACKEND_PORT: u16 = 4000;
 pub const SERVER_ADDRESS_SERVER_SIDE: IpAddr =
     IpAddr::V6(Ipv6Addr::UNSPECIFIED);
 
-pub const OFFICIAL_GAME_SERVER: &str = "0.0.0.0:5888";
+pub const OFFICIAL_GAME_SERVER: &str = "game.invertedecho.com:5888";
 
 fn resolve_with_retry(
     address: &str,
@@ -48,13 +48,15 @@ fn resolve_with_retry(
     Err(last_err.unwrap())
 }
 
-pub fn get_dedicated_server_socket_addr_client_side(
-    address_to_resolve: &str,
-) -> Option<SocketAddr> {
+pub fn resolve_server_address(address_to_resolve: &str) -> Option<SocketAddr> {
     match resolve_with_retry(address_to_resolve) {
         Ok(success) => success.first().copied(),
         Err(error) => {
-            warn!("Failed to resolve game server: {}", error);
+            warn!(
+                "Failed to resolve game server address {address_to_resolve}: \
+                 {}",
+                error
+            );
             None
         }
     }
