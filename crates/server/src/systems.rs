@@ -1,44 +1,51 @@
-use std::{fs::File, io::Read};
+use std::{
+    fs::{self, File},
+    io::Read,
+};
 
 use avian3d::prelude::Collider;
 use bevy::prelude::*;
 use game_core::GameCoreLoadingState;
 use shared::{GameConfigServer, StartGame};
 
-use crate::utils::get_path_to_collider_json;
+use crate::utils::get_path_to_collider_directory_path;
 
 pub fn spawn_map_colliders(
     mut commands: Commands,
     mut next_game_core_loading_state: ResMut<NextState<GameCoreLoadingState>>,
 ) {
-    let file_path = get_path_to_collider_json();
+    let collider_directory_path = get_path_to_collider_directory_path();
 
-    let mut file_buffer = String::from("");
-    let mut collider_file = File::open(file_path)
-        .expect("Can open collider file for medium plastic map");
+    for path in fs::read_dir(collider_directory_path).unwrap() {
+        let mut file_buffer = String::from("");
+        let mut collider_file = File::open(path.unwrap().path())
+            .expect("Can open collider file for medium plastic map");
 
-    collider_file.read_to_string(&mut file_buffer).unwrap();
+        collider_file.read_to_string(&mut file_buffer).unwrap();
 
-    let colliders: Result<
-        Vec<(Collider, GlobalTransform)>,
-        serde_json::error::Error,
-    > = serde_json::from_str(&file_buffer);
+        let colliders: Result<
+            Vec<(Collider, GlobalTransform)>,
+            serde_json::error::Error,
+        > = serde_json::from_str(&file_buffer);
 
-    match colliders {
-        Ok(colliders_ok) => {
-            info!(
-                "Loaded colliders and their transform from json, spawning \
-                 them."
-            );
-            commands.spawn_batch(colliders_ok);
-        }
-        Err(error) => {
-            panic!(
-                "Failed to load colliders and their transform from json: {}",
-                error
-            );
+        match colliders {
+            Ok(colliders_ok) => {
+                info!(
+                    "Loaded colliders and their transform from json, spawning \
+                     them."
+                );
+                commands.spawn_batch(colliders_ok);
+            }
+            Err(error) => {
+                panic!(
+                    "Failed to load colliders and their transform from json: \
+                     {}",
+                    error
+                );
+            }
         }
     }
+
     next_game_core_loading_state.set(GameCoreLoadingState::CollidersSpawned);
 }
 

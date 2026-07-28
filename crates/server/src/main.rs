@@ -31,6 +31,7 @@ impl Plugin for HeadlessServerPlugin {
             file_path: "../../assets".to_string(),
             ..default()
         });
+        app.add_message::<AssetEvent<WorldAsset>>();
         app.add_plugins(MeshPlugin);
         app.add_plugins((TransformPlugin, bevy::scene::ScenePlugin))
             .init_resource::<Assets<Mesh>>();
