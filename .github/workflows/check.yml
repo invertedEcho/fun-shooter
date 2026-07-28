@@ -1,0 +1,30 @@
+name: Check
+
+on:
+  push:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+      - name: Cargo format
+        run: |
+          cargo fmt --all -- --check
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update; sudo apt-get install -y pkg-config libx11-dev libasound2-dev libudev-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libwayland-dev libxkbcommon-dev mold clang
+      - name: Cargo check
+        # we create empty assets directory so build of `bevy_embedded_assets` wont fail
+        run: |
+          mkdir assets
+          cargo clippy -- -D unused-imports -D unused-variables -D clippy::needless_update
