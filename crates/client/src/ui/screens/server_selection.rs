@@ -1,7 +1,8 @@
 use bevy::{prelude::*, text::EditableText};
 use netvy::NetvyMode;
 use shared::{
-    AppRole, StartGame, utils::network::OFFICIAL_GAME_SERVER_ADDRESS,
+    AppRole, StartGame,
+    utils::network::{OFFICIAL_GAME_SERVER_ADDRESS, SERVER_PORT},
 };
 
 use crate::{
@@ -226,55 +227,73 @@ fn handle_buttons_interaction(
             continue;
         };
 
-        let port_string = editable_text_server_port.value().to_string();
-        let parsed_port: u16 = match port_string.parse() {
-            Ok(parsed_port) => parsed_port,
-            Err(error) => {
-                ***current_message_text = format!(
-                    "Your given port {port_string} seems to be invalid: \
-                     {error}"
-                );
-                error!("Given custom server port cant be parsed: {error}");
-                continue;
-            }
-        };
-
-        if *server_selection_button
-            == ServerSelectionButton::ConnectToCustomServer
-        {
-            info!(
-                "Storing custom server address in game settings (config file)"
-            );
-            game_settings.server.last_custom_server_address =
-                editable_text_server_address.value().to_string();
-            game_settings.server.last_custom_server_port = parsed_port;
-        }
-
-        let server_address = match server_selection_button {
+        match server_selection_button {
             ServerSelectionButton::ConnectToOfficialServer => {
-                OFFICIAL_GAME_SERVER_ADDRESS
+                // TODO: All this shouldnt happen in the UI, write a message instead that gets
+                // handled somewhere where it makes more sense, probably game_core.
+                *netvy_mode = NetvyMode::Client;
+                next_app_state.set(AppState::LoadingGame);
+                next_app_role.set(AppRole::ClientOnly);
+                // NOTE: we skip state StartingServer, because in multiplayer we dont start a
+                // server ourself but connect to the dedicated server
+                next_client_loading_state
+                    .set(ClientLoadingState::ConnectingToServer);
+
+                connect_to_dedicated_server_message_writer.write(
+                    ConnectToDedicatedServer {
+                        server_address: OFFICIAL_GAME_SERVER_ADDRESS
+                            .to_string(),
+                        port: SERVER_PORT,
+                    },
+                );
+
+                message_writer.write(StartGame(pending_game_config.0));
             }
             ServerSelectionButton::ConnectToCustomServer => {
-                &editable_text_server_address.value().to_string()
+                let port_string = editable_text_server_port.value().to_string();
+                let parsed_port: u16 = match port_string.parse() {
+                    Ok(parsed_port) => parsed_port,
+                    Err(error) => {
+                        ***current_message_text = format!(
+                            "Your given port {port_string} seems to be \
+                             invalid: {error}"
+                        );
+                        error!(
+                            "Given custom server port cant be parsed: {error}"
+                        );
+                        continue;
+                    }
+                };
+
+                info!(
+                    "Storing custom server address in game settings (config \
+                     file)"
+                );
+                game_settings.server.last_custom_server_address =
+                    editable_text_server_address.value().to_string();
+                game_settings.server.last_custom_server_port = parsed_port;
+
+                // TODO: All this shouldnt happen in the UI, write a message instead that gets
+                // handled somewhere where it makes more sense, probably game_core.
+                *netvy_mode = NetvyMode::Client;
+                next_app_state.set(AppState::LoadingGame);
+                next_app_role.set(AppRole::ClientOnly);
+                // NOTE: we skip state StartingServer, because in multiplayer we dont start a
+                // server ourself but connect to the dedicated server
+                next_client_loading_state
+                    .set(ClientLoadingState::ConnectingToServer);
+
+                connect_to_dedicated_server_message_writer.write(
+                    ConnectToDedicatedServer {
+                        server_address: editable_text_server_address
+                            .value()
+                            .to_string(),
+                        port: SERVER_PORT,
+                    },
+                );
+
+                message_writer.write(StartGame(pending_game_config.0));
             }
-        };
-
-        // TODO: All this shouldnt happen in the UI, write a message instead that gets
-        // handled somewhere where it makes more sense, probably game_core.
-        *netvy_mode = NetvyMode::Client;
-        next_app_state.set(AppState::LoadingGame);
-        next_app_role.set(AppRole::ClientOnly);
-        // NOTE: we skip state StartingServer, because in multiplayer we dont start a
-        // server ourself but connect to the dedicated server
-        next_client_loading_state.set(ClientLoadingState::ConnectingToServer);
-
-        connect_to_dedicated_server_message_writer.write(
-            ConnectToDedicatedServer {
-                server_address: server_address.to_string(),
-                port: parsed_port,
-            },
-        );
-
-        message_writer.write(StartGame(pending_game_config.0));
+        }
     }
 }

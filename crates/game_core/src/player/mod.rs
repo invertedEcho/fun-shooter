@@ -177,9 +177,7 @@ fn handle_shoot_requests(
                 message: PlayerHitMessage {
                     origin: message.origin,
                 },
-                target: ClientNetworkMessageTarget::Clients(vec![
-                    player_owned_by.0,
-                ]),
+                target: NetworkMessageTarget::Clients(vec![player_owned_by.0]),
             });
         }
 

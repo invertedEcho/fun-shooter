@@ -95,9 +95,7 @@ pub fn enemy_shoot_player(
                 message: PlayerHitMessage {
                     origin: enemy_transform.translation,
                 },
-                target: ClientNetworkMessageTarget::Clients(vec![
-                    player_owned_by.0,
-                ]),
+                target: NetworkMessageTarget::Clients(vec![player_owned_by.0]),
             });
 
             if health.0 <= 0.0 {

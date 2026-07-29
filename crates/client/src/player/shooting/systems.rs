@@ -75,7 +75,7 @@ pub fn handle_input(
     >,
     player_weapon_shoot_cooldown_timer_query: Query<&PlayerShootCooldownTimer>,
     player_query: Single<
-        (Entity, &mut PlayerWeapons, &mut PlayerState, &mut AimType),
+        (&mut PlayerWeapons, &mut PlayerState, &mut AimType),
         OurPlayerFilter,
     >,
     ui_state: Res<UiState>,
@@ -85,7 +85,7 @@ pub fn handle_input(
         return;
     }
 
-    let (player_entity, mut player_weapons, mut player_state, mut aim_type) =
+    let (mut player_weapons, mut player_state, mut aim_type) =
         player_query.into_inner();
 
     let already_reloading = player_state.reloading;
@@ -132,10 +132,6 @@ pub fn handle_input(
         }
 
         current_weapon_state.loaded_ammo -= 1;
-        info!(
-            ?current_weapon_state,
-            "Decreasing loaded_ammo on player {player_entity}"
-        );
 
         player_shot_messsage_writer.write(PlayerWeaponFiredMessage);
 
@@ -147,13 +143,6 @@ pub fn handle_input(
         )));
     }
 
-    if reload_button_pressed {
-        info!(
-            ?weapon_is_full,
-            ?already_reloading,
-            "RELOAD BUTTON PRESSED!"
-        );
-    }
     if reload_button_pressed && !weapon_is_full && !already_reloading {
         *aim_type = AimType::Normal;
         reload_player_weapon_message_writer.write(ReloadPlayerWeaponMessage);
