@@ -251,7 +251,10 @@ pub fn update_player_health_text(
 }
 
 pub fn update_player_ammo_text(
-    player_weapons: Single<&PlayerWeapons, Changed<PlayerWeapons>>,
+    player_weapons: Single<
+        &PlayerWeapons,
+        (Changed<PlayerWeapons>, With<Owned>),
+    >,
     mut player_loaded_ammo_text: Single<
         &mut Text,
         (With<PlayerLoadedAmmoText>, Without<PlayerCarriedAmmoText>),

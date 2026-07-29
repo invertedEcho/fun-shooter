@@ -4,7 +4,7 @@ pub fn get_game_settings_directory() -> String {
     let Some(config_dir) = dirs::config_dir() else {
         panic!("Could not get config directory");
     };
-    config_dir.to_str().unwrap().to_owned() + "/fun-shooter/"
+    config_dir.to_str().unwrap().to_owned() + "/arena-shooter/"
 }
 
 pub fn get_game_settings_file(game_settings_directory: String) -> String {

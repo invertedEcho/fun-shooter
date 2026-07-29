@@ -10,12 +10,13 @@ use shared::{
 
 use crate::{
     game_flow::states::AppState,
-    game_settings::GameSettings,
+    game_settings::{GameSettings, PendingGameSettings},
     player::shooting::messages::{
         PlayerWeaponFiredMessage, PlayerWeaponSlotChangeMessage,
         ReloadPlayerWeaponMessage,
     },
     ui::common::AnyButtonInteractionQuery,
+    utils::query_filters::OurPlayerFilter,
 };
 
 const BASE_PATH_TO_ASSAULT_RIFLE_SOUNDS: &str = "sfx/weapons/assault_rifle/";
@@ -50,7 +51,7 @@ impl Plugin for AudioPlugin {
         app.add_systems(
             Update,
             update_audio_settings_on_game_settings_change
-                .run_if(resource_changed::<GameSettings>),
+                .run_if(resource_changed::<PendingGameSettings>),
         );
         app.add_systems(OnEnter(AppState::Disconnected), play_error_sound);
     }
@@ -81,10 +82,10 @@ fn start_main_menu_theme(
 }
 
 fn update_audio_settings_on_game_settings_change(
-    game_settings: Res<GameSettings>,
+    pending_game_settings: Res<PendingGameSettings>,
     music_audio_sinks: Query<&mut AudioSink, With<MusicAudio>>,
 ) {
-    let music_volume = game_settings.audio.music_volume;
+    let music_volume = pending_game_settings.0.audio.music_volume;
     let new_music_volume =
         Volume::Linear((music_volume / 100.0).clamp(0.0, 1.0));
 
@@ -280,7 +281,7 @@ fn play_aim_sound_on_changed_aim_type(
 fn play_reload_sound(
     mut play_sound_message_writer: MessageWriter<PlaySoundMessage>,
     mut message_reader: MessageReader<ReloadPlayerWeaponMessage>,
-    player_weapons: Single<&PlayerWeapons>,
+    player_weapons: Single<&PlayerWeapons, OurPlayerFilter>,
 ) {
     for _ in message_reader.read() {
         let active_weapon_slot = player_weapons.active_weapon_slot;

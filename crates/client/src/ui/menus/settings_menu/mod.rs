@@ -1,6 +1,6 @@
 use crate::{
     game_flow::states::MainMenuState,
-    game_settings::{GameSettings, update_game_settings_file},
+    game_settings::{GameSettings, PendingGameSettings},
     ui::{
         common::{
             DEFAULT_GAME_FONT_PATH, UI_BACKGROUND, UI_BORDER, UI_PANEL,
@@ -31,6 +31,7 @@ pub struct SettingsMenuPlugin;
 impl Plugin for SettingsMenuPlugin {
     fn build(&self, app: &mut App) {
         app.init_state::<SettingsCurrentTab>();
+
         app.add_systems(
             OnEnter(MainMenuState::Settings),
             (spawn_settings_menu, spawn_audio_settings_tab_content).chain(),
@@ -229,7 +230,8 @@ fn handle_settings_menu_action_button_pressed(
         Changed<Interaction>,
     >,
     mut next_main_menu_state: ResMut<NextState<MainMenuState>>,
-    game_settings: Res<GameSettings>,
+    pending_game_settings: Res<PendingGameSettings>,
+    mut game_settings: ResMut<GameSettings>,
 ) {
     for (interaction, settings_menu_button) in query {
         let Interaction::Pressed = interaction else {
@@ -240,7 +242,7 @@ fn handle_settings_menu_action_button_pressed(
                 next_main_menu_state.set(MainMenuState::Root);
             }
             SettingsMenuActionButton::Save => {
-                update_game_settings_file(&game_settings);
+                *game_settings = pending_game_settings.0.clone();
             }
         }
     }

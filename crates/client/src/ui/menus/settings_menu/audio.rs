@@ -4,7 +4,7 @@ use bevy::{
 };
 
 use crate::{
-    game_settings::GameSettings,
+    game_settings::{GameSettings, PendingGameSettings},
     ui::{
         common::DEFAULT_GAME_FONT_PATH,
         menus::settings_menu::SettingsRightSideContentRoot,
@@ -87,42 +87,43 @@ pub fn spawn_audio_settings_tab_content(
 
 fn update_game_settings_on_volume_slider_change(
     value_change: On<ValueChange<f32>>,
-    mut game_settings: ResMut<GameSettings>,
+    mut pending_game_settings: ResMut<PendingGameSettings>,
     volume_sliders: Query<&VolumeSlider>,
 ) {
     let source = value_change.source;
     let Ok(volume_slider) = volume_sliders.get(source) else {
         return;
     };
+
     match volume_slider.0 {
         VolumeSliderType::Sounds => {
-            game_settings.audio.sounds_volume = value_change.value;
+            pending_game_settings.0.audio.sounds_volume = value_change.value;
         }
         VolumeSliderType::Music => {
-            game_settings.audio.music_volume = value_change.value;
+            pending_game_settings.0.audio.music_volume = value_change.value;
         }
     }
 }
 
 pub fn update_volume_slider_value(
-    game_settings: Res<GameSettings>,
+    pending_game_settings: Res<PendingGameSettings>,
     mut sliders: Query<(Entity, &VolumeSlider), With<Slider>>,
     mut commands: Commands,
 ) {
-    if game_settings.is_changed() {
+    if pending_game_settings.is_changed() {
         for (slider_entity, volume_slider) in sliders.iter_mut() {
             // we insert as component instead of changing the SliderValue component directly,
             // as SliderValue is internally marked as immutable
             match volume_slider.0 {
                 VolumeSliderType::Sounds => {
-                    commands
-                        .entity(slider_entity)
-                        .insert(SliderValue(game_settings.audio.sounds_volume));
+                    commands.entity(slider_entity).insert(SliderValue(
+                        pending_game_settings.0.audio.sounds_volume,
+                    ));
                 }
                 VolumeSliderType::Music => {
-                    commands
-                        .entity(slider_entity)
-                        .insert(SliderValue(game_settings.audio.music_volume));
+                    commands.entity(slider_entity).insert(SliderValue(
+                        pending_game_settings.0.audio.music_volume,
+                    ));
                 }
             }
         }

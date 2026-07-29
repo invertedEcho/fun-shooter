@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use netvy::PeerId;
 use serde::{Deserialize, Serialize};
 
 use crate::{GameMap, GameMode, GameStateServer};
@@ -8,7 +7,6 @@ use crate::{GameMap, GameMode, GameStateServer};
 pub struct ShootRequest {
     pub origin: Vec3,
     pub direction: Dir3,
-    pub source_peer_id: PeerId,
 }
 
 /// A client can send this to the server to request update of the game config on the server, such as

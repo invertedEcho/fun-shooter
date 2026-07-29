@@ -153,21 +153,12 @@ pub fn send_shoot_request_on_weapon_fired(
     mut message_reader: MessageReader<PlayerWeaponFiredMessage>,
     mut message_writer: MessageWriter<ToServer<ShootRequest>>,
     world_model_camera_query: WorldModelCameraQuery,
-    our_peer_id: Option<Res<OurPeerId>>,
 ) {
     for _ in message_reader.read() {
         let origin = world_model_camera_query.1.translation();
         let direction = world_model_camera_query.1.forward();
 
-        let Some(ref our_peer_id) = our_peer_id else {
-            error!("OurPeerId doesn't exist, cant send ShootRequest!");
-            return;
-        };
-        message_writer.write(ToServer(ShootRequest {
-            direction,
-            origin,
-            source_peer_id: our_peer_id.0,
-        }));
+        message_writer.write(ToServer(ShootRequest { direction, origin }));
     }
 }
 
@@ -294,7 +285,10 @@ pub fn tick_player_weapon_shoot_cooldown_timer(
 
 pub fn handle_reload_player_weapon_message(
     mut commands: Commands,
-    player_query: Single<(&mut PlayerWeapons, &mut PlayerState)>,
+    player_query: Single<
+        (&mut PlayerWeapons, &mut PlayerState),
+        OurPlayerFilter,
+    >,
     mut message_reader: MessageReader<ReloadPlayerWeaponMessage>,
     mut player_weapon_model_transform: Single<
         &mut Transform,
@@ -334,7 +328,10 @@ pub fn handle_reload_player_weapon_message(
 }
 
 pub fn handle_player_weapon_reload_timer(
-    player_weapons: Single<(&mut PlayerWeapons, &mut PlayerState)>,
+    player_weapons: Single<
+        (&mut PlayerWeapons, &mut PlayerState),
+        OurPlayerFilter,
+    >,
     reload_timer: Option<ResMut<WeaponReloadTimer>>,
     time: Res<Time>,
 ) {
@@ -379,7 +376,10 @@ pub fn handle_weapon_slot_change(
     mut commands: Commands,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut mouse_scroll_message_reader: MessageReader<MouseWheel>,
-    player_query: Single<(&mut PlayerWeapons, &mut PlayerState), With<Owned>>,
+    player_query: Single<
+        (&mut PlayerWeapons, &mut PlayerState),
+        OurPlayerFilter,
+    >,
     mut message_writer: MessageWriter<PlayerWeaponSlotChangeMessage>,
     existing_change_weapon_cooldown: Option<Res<ChangeWeaponCooldown>>,
     mut update_player_weapon_model_message_writer: MessageWriter<
@@ -457,7 +457,7 @@ pub fn handle_player_scope_aim(
     mouse_input: Res<ButtonInput<MouseButton>>,
     player_query: Single<
         (&mut AimType, &PlayerState, &PlayerWeapons),
-        With<Owned>,
+        OurPlayerFilter,
     >,
     app_debug_state: Res<AppDebugState>,
 ) {

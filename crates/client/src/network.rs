@@ -9,9 +9,7 @@ use shared::character_controller::{
 };
 use shared::multiplayer_messages::ConfirmRespawn;
 use shared::player::Player;
-use shared::utils::network::{
-    SERVER_PORT, get_dedicated_server_socket_addr_client_side,
-};
+use shared::utils::network::{SERVER_PORT, resolve_server_address};
 
 // use crate::auth::{
 //     ConnectTokenRequestTask, fetch_connect_token,
@@ -27,6 +25,7 @@ pub const GENERIC_NO_CONNECTION_ERROR_MESSAGE: &str =
 #[derive(Message)]
 pub struct ConnectToDedicatedServer {
     pub server_address: String,
+    pub port: u16,
 }
 
 pub struct NetworkPlugin;
@@ -207,13 +206,14 @@ fn spawn_host_client(
 fn handle_connect_to_dedicated_server(
     mut commands: Commands,
     mut message_reader: MessageReader<ConnectToDedicatedServer>,
+    mut app_state: ResMut<NextState<AppState>>,
 ) {
     for message in message_reader.read() {
-        info!("READ ConnectToDedicatedServer message");
-        let Some(socket_address) = get_dedicated_server_socket_addr_client_side(
-            &message.server_address,
-        ) else {
-            error!("Failed to resolve dedicated server address!");
+        let concatenated =
+            format!("{}:{}", message.server_address, message.port);
+        let Some(socket_address) = resolve_server_address(&concatenated) else {
+            error!("Failed to resolve server address {concatenated}!");
+            app_state.set(AppState::Disconnected);
             continue;
         };
         let client_entity =

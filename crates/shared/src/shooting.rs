@@ -6,14 +6,14 @@ use serde::{Deserialize, Serialize};
 // no idea if this number makes sense but works so far
 pub const MAX_SHOOTING_DISTANCE: f32 = 200.0;
 
-#[derive(Component, Serialize, Deserialize, PartialEq)]
+#[derive(Component, Serialize, Deserialize, PartialEq, Debug)]
 pub struct PlayerWeapons {
     pub weapons: [PlayerWeapon; 2],
     pub active_weapon_slot: usize,
 }
 
 /// Static information of the weapon
-#[derive(Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Clone, Debug)]
 pub struct GameWeapon {
     pub kind: WeaponKind,
     pub cost: usize,
@@ -23,19 +23,19 @@ pub struct GameWeapon {
     pub damage: f32,
 }
 
-#[derive(Serialize, Deserialize, PartialEq)]
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub struct PlayerWeapon {
     pub state: WeaponState,
     pub game_weapon: GameWeapon,
 }
 
-#[derive(Component, Serialize, Deserialize, PartialEq)]
+#[derive(Component, Serialize, Deserialize, PartialEq, Debug)]
 pub struct WeaponState {
     pub loaded_ammo: u64,
     pub carried_ammo: u64,
 }
 
-#[derive(PartialEq, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Clone, Serialize, Deserialize, Debug)]
 pub enum WeaponSlotType {
     Primary,
     Secondary,
