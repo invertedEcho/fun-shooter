@@ -19,7 +19,7 @@ use crate::{
     character_controller::CharacterControllerPlugin,
     enemy_visuals::EnemyVisualsPlugin,
     game_flow::{GameFlowPlugin, states::PendingGameConfigClient},
-    game_settings::get_or_create_game_settings,
+    game_settings::{GameSettingsPlugin, get_or_create_game_settings},
     gameplay_debug::GameplayDebugPlugin,
     network::NetworkPlugin,
     particles::ParticlesPlugin,
@@ -137,7 +137,8 @@ fn main() {
         .add_plugins(CharacterControllerPlugin)
         .add_plugins(AudioPlugin)
         .add_plugins(EnemyVisualsPlugin)
-        .add_plugins(WorldPlugin);
+        .add_plugins(WorldPlugin)
+        .add_plugins(GameSettingsPlugin);
 
     if cfg!(debug_assertions) {
         app.add_plugins(GameplayDebugPlugin);

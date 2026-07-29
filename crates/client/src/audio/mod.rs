@@ -10,7 +10,7 @@ use shared::{
 
 use crate::{
     game_flow::states::AppState,
-    game_settings::GameSettings,
+    game_settings::{GameSettings, PendingGameSettings},
     player::shooting::messages::{
         PlayerWeaponFiredMessage, PlayerWeaponSlotChangeMessage,
         ReloadPlayerWeaponMessage,
@@ -51,7 +51,7 @@ impl Plugin for AudioPlugin {
         app.add_systems(
             Update,
             update_audio_settings_on_game_settings_change
-                .run_if(resource_changed::<GameSettings>),
+                .run_if(resource_changed::<PendingGameSettings>),
         );
         app.add_systems(OnEnter(AppState::Disconnected), play_error_sound);
     }
@@ -82,10 +82,10 @@ fn start_main_menu_theme(
 }
 
 fn update_audio_settings_on_game_settings_change(
-    game_settings: Res<GameSettings>,
+    pending_game_settings: Res<PendingGameSettings>,
     music_audio_sinks: Query<&mut AudioSink, With<MusicAudio>>,
 ) {
-    let music_volume = game_settings.audio.music_volume;
+    let music_volume = pending_game_settings.0.audio.music_volume;
     let new_music_volume =
         Volume::Linear((music_volume / 100.0).clamp(0.0, 1.0));
 

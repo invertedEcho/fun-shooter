@@ -7,7 +7,7 @@ use bevy::{
 };
 
 use crate::{
-    game_settings::GameSettings,
+    game_settings::{GameSettings, PendingGameSettings},
     ui::{
         common::{DEFAULT_FONT_SIZE, DEFAULT_GAME_FONT_PATH},
         menus::settings_menu::SettingsRightSideContentRoot,
@@ -121,7 +121,7 @@ fn observe_graphics_tab_checkboxes(
     value_change: On<ValueChange<bool>>,
     graphics_checkboxes: Query<&GraphicsCheckbox>,
     mut commands: Commands,
-    mut game_settings: ResMut<GameSettings>,
+    mut pending_game_settings: ResMut<PendingGameSettings>,
 ) {
     let source = value_change.source;
     info!("Some checkbox got its value changed!");
@@ -135,7 +135,7 @@ fn observe_graphics_tab_checkboxes(
 
     match graphics_checkbox.0 {
         GraphicsSettingType::BorderlessFullscreen => {
-            game_settings.graphics.borderless_fullscreen = checked;
+            pending_game_settings.0.graphics.borderless_fullscreen = checked;
             if checked {
                 commands.entity(source).insert(Checked);
             } else {
@@ -143,7 +143,7 @@ fn observe_graphics_tab_checkboxes(
             }
         }
         GraphicsSettingType::FpsOverlayShown => {
-            game_settings.graphics.fps_overlay_shown = checked;
+            pending_game_settings.0.graphics.fps_overlay_shown = checked;
             if checked {
                 commands.entity(source).insert(Checked);
             } else {
@@ -155,12 +155,12 @@ fn observe_graphics_tab_checkboxes(
 
 pub fn handle_graphics_game_settings_change(
     mut commands: Commands,
-    game_settings: Res<GameSettings>,
+    pending_game_settings: Res<PendingGameSettings>,
     mut fps_overlay: ResMut<FpsOverlayConfig>,
     mut window: Single<&mut Window>,
     graphics_checkboxes: Query<(Entity, &GraphicsCheckbox)>,
 ) {
-    fps_overlay.enabled = game_settings.graphics.fps_overlay_shown;
+    fps_overlay.enabled = pending_game_settings.0.graphics.fps_overlay_shown;
     if let Some((entity, _)) =
         graphics_checkboxes.iter().find(|(_, checkbox)| {
             checkbox.0 == GraphicsSettingType::FpsOverlayShown
@@ -173,7 +173,7 @@ pub fn handle_graphics_game_settings_change(
         }
     }
 
-    let fullscreen = game_settings.graphics.borderless_fullscreen;
+    let fullscreen = pending_game_settings.0.graphics.borderless_fullscreen;
     if fullscreen {
         window.mode =
             WindowMode::BorderlessFullscreen(MonitorSelection::Current);
@@ -196,7 +196,7 @@ pub fn handle_graphics_game_settings_change(
 
 pub fn handle_graphics_setting_button_press(
     query: Query<(&Interaction, &GraphicsButton), Changed<Interaction>>,
-    mut game_settings: ResMut<GameSettings>,
+    mut pending_game_settings: ResMut<PendingGameSettings>,
 ) {
     for (interaction, graphics_button) in query {
         if *interaction != Interaction::Pressed {
@@ -204,12 +204,12 @@ pub fn handle_graphics_setting_button_press(
         }
         match graphics_button.0 {
             GraphicsSettingType::BorderlessFullscreen => {
-                game_settings.graphics.borderless_fullscreen =
-                    !game_settings.graphics.borderless_fullscreen;
+                pending_game_settings.0.graphics.borderless_fullscreen =
+                    !pending_game_settings.0.graphics.borderless_fullscreen;
             }
             GraphicsSettingType::FpsOverlayShown => {
-                game_settings.graphics.fps_overlay_shown =
-                    !game_settings.graphics.fps_overlay_shown;
+                pending_game_settings.0.graphics.fps_overlay_shown =
+                    !pending_game_settings.0.graphics.fps_overlay_shown;
             }
         }
     }

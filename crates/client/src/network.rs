@@ -16,9 +16,7 @@ use shared::utils::network::{SERVER_PORT, resolve_server_address};
 //     get_connect_token_from_auth_backend,
 // };
 use crate::character_controller::components::CharacterControllerBundle;
-use crate::game_flow::states::{
-    AppState, ClientLoadingState, InGameState, MainMenuState,
-};
+use crate::game_flow::states::{AppState, ClientLoadingState, InGameState};
 
 pub const GENERIC_NO_CONNECTION_ERROR_MESSAGE: &str =
     "Failed to connect to Game Server. Please verify your internet connection \

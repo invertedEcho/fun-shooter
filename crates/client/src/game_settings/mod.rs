@@ -12,11 +12,37 @@ use crate::game_settings::utils::{
 
 mod utils;
 
+pub struct GameSettingsPlugin;
+
+impl Plugin for GameSettingsPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Startup, copy_pending_game_settings);
+
+        app.add_systems(
+            Update,
+            update_game_settings_file.run_if(resource_changed::<GameSettings>),
+        );
+    }
+}
+
+/// Intermediate resource to save pending game settings. As we update the config file whenver `GameSettings` resource changes,
+/// this will save us unnecessary file writes for example if the user just plays around with the volume slider.
+#[derive(Resource)]
+pub struct PendingGameSettings(pub GameSettings);
+
+/// Stores the current game settings as a resource. This way, we can use resource_changed, to
+/// automatically update the config file on the system whenever it changes.
 #[derive(Serialize, Deserialize, Resource, Clone, Default)]
 #[serde(default)]
 pub struct GameSettings {
     pub audio: AudioSettings,
     pub graphics: GraphicsSettings,
+    pub server: ServerSettings,
+}
+
+#[derive(Default, Clone, Serialize, Deserialize)]
+pub struct ServerSettings {
+    pub last_custom_server: String,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -100,14 +126,14 @@ pub fn get_or_create_game_settings() -> GameSettings {
     }
 }
 
-pub fn update_game_settings_file(new_game_settings: &GameSettings) {
+fn update_game_settings_file(game_settings: Res<GameSettings>) {
     let game_settings_directory = ensure_game_settings_directory_exists();
     let game_settings_file = get_game_settings_file(game_settings_directory);
 
     let write_result = File::create(game_settings_file)
         .expect("Can create game settings file")
         .write_all(
-            &serde_json::to_vec(&new_game_settings)
+            &serde_json::to_vec(game_settings.into_inner())
                 .expect("Can serialize to json string"),
         );
 
@@ -119,4 +145,11 @@ pub fn update_game_settings_file(new_game_settings: &GameSettings) {
             panic!("Failed to update game save: {}", err);
         }
     }
+}
+
+fn copy_pending_game_settings(
+    mut commands: Commands,
+    game_settings: Res<GameSettings>,
+) {
+    commands.insert_resource(PendingGameSettings(game_settings.clone()));
 }

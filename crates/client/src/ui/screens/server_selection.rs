@@ -1,5 +1,7 @@
 use bevy::{
-    color::palettes::tailwind::SLATE_300, prelude::*, text::EditableText,
+    color::palettes::tailwind::SLATE_300,
+    prelude::*,
+    text::{EditableText, TextCursorStyle},
 };
 use netvy::NetvyMode;
 use shared::{AppRole, StartGame, utils::network::OFFICIAL_GAME_SERVER};
@@ -8,6 +10,7 @@ use crate::{
     game_flow::states::{
         AppState, ClientLoadingState, MainMenuState, PendingGameConfigClient,
     },
+    game_settings::GameSettings,
     network::ConnectToDedicatedServer,
     ui::{
         common::{DEFAULT_GAME_FONT_PATH, DEFAULT_ROW_GAP},
@@ -21,7 +24,10 @@ impl Plugin for ServerSelectionScreenPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_server_selection_screen);
 
-        app.add_systems(Update, handle_buttons_interaction);
+        app.add_systems(
+            Update,
+            (handle_buttons_interaction, fill_custom_server_address_input),
+        );
 
         app.add_systems(OnEnter(MainMenuState::ServerSelection), show_screen);
         app.add_systems(OnExit(MainMenuState::ServerSelection), hide_screen);
@@ -31,7 +37,7 @@ impl Plugin for ServerSelectionScreenPlugin {
 #[derive(Component)]
 struct ServerSelectionScreenRoot;
 
-#[derive(Component)]
+#[derive(Component, PartialEq)]
 enum ServerSelectionButton {
     ConnectToDedicatedServer,
     ConnectToCustomServer,
@@ -76,15 +82,28 @@ fn spawn_server_selection_screen(
                     allow_newlines: false,
                     ..default()
                 },
+                Name::new("CustomServerAddressInput"),
+                TextCursorStyle::default(),
                 CustomServerAddressInput,
                 Node {
                     border: px(2).all(),
-                    width: percent(50),
+                    width: percent(30),
                     ..Default::default()
                 },
                 BorderColor::from(Color::from(SLATE_300)),
             ));
         });
+}
+
+fn fill_custom_server_address_input(
+    query: Query<&mut EditableText, Added<CustomServerAddressInput>>,
+    game_settings: ResMut<GameSettings>,
+) {
+    for mut editable_text in query {
+        editable_text
+            .editor
+            .set_text(&game_settings.server.last_custom_server);
+    }
 }
 
 fn show_screen(
@@ -119,11 +138,23 @@ fn handle_buttons_interaction(
     mut netvy_mode: ResMut<NetvyMode>,
     pending_game_config: Res<PendingGameConfigClient>,
     editable_text_query: Single<&EditableText, With<CustomServerAddressInput>>,
+    mut game_settings: ResMut<GameSettings>,
 ) {
     for (interaction, server_selection_button) in button_query {
         let Interaction::Pressed = interaction else {
             continue;
         };
+
+        if *server_selection_button
+            == ServerSelectionButton::ConnectToCustomServer
+        {
+            info!(
+                "Storing custom server address in game settings (config file)"
+            );
+            game_settings.server.last_custom_server =
+                editable_text_query.value().to_string();
+        }
+
         let server_address = match server_selection_button {
             ServerSelectionButton::ConnectToDedicatedServer => {
                 OFFICIAL_GAME_SERVER
