@@ -23,7 +23,7 @@ pub const AUTH_BACKEND_PORT: u16 = 4000;
 pub const SERVER_ADDRESS_SERVER_SIDE: IpAddr =
     IpAddr::V6(Ipv6Addr::UNSPECIFIED);
 
-pub const OFFICIAL_GAME_SERVER: &str = "game.invertedecho.com:5888";
+pub const OFFICIAL_GAME_SERVER_ADDRESS: &str = "game.invertedecho.com";
 
 fn resolve_with_retry(
     address: &str,

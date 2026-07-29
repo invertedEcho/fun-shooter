@@ -42,7 +42,8 @@ pub struct GameSettings {
 
 #[derive(Default, Clone, Serialize, Deserialize)]
 pub struct ServerSettings {
-    pub last_custom_server: String,
+    pub last_custom_server_address: String,
+    pub last_custom_server_port: u16,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
