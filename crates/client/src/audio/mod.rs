@@ -16,6 +16,7 @@ use crate::{
         ReloadPlayerWeaponMessage,
     },
     ui::common::AnyButtonInteractionQuery,
+    utils::query_filters::OurPlayerFilter,
 };
 
 const BASE_PATH_TO_ASSAULT_RIFLE_SOUNDS: &str = "sfx/weapons/assault_rifle/";
@@ -280,7 +281,7 @@ fn play_aim_sound_on_changed_aim_type(
 fn play_reload_sound(
     mut play_sound_message_writer: MessageWriter<PlaySoundMessage>,
     mut message_reader: MessageReader<ReloadPlayerWeaponMessage>,
-    player_weapons: Single<&PlayerWeapons>,
+    player_weapons: Single<&PlayerWeapons, OurPlayerFilter>,
 ) {
     for _ in message_reader.read() {
         let active_weapon_slot = player_weapons.active_weapon_slot;

@@ -164,6 +164,7 @@ fn handle_spawn_enemies_message(
                             EnemyState::default(),
                             Grounded::default(),
                             SyncPosition::default(),
+                            ReplicateEntity,
                             RigidBody::Kinematic,
                             Collider::capsule(
                                 CHARACTER_CAPSULE_RADIUS,

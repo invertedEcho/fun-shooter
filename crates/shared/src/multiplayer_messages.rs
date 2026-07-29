@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use netvy::PeerId;
 use serde::{Deserialize, Serialize};
 
 use crate::{GameMap, GameMode, GameStateServer};

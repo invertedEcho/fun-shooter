@@ -256,7 +256,7 @@ fn handle_client_respawn_requests(
 
         message_writer.write(ToClients {
             message: ConfirmRespawn,
-            target: NetworkMessageTarget::Clients(vec![client_peer_id]),
+            target: ClientNetworkMessageTarget::Clients(vec![client_peer_id]),
         });
     }
 }

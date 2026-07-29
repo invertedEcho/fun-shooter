@@ -75,7 +75,7 @@ pub fn handle_input(
     >,
     player_weapon_shoot_cooldown_timer_query: Query<&PlayerShootCooldownTimer>,
     player_query: Single<
-        (&mut PlayerWeapons, &mut PlayerState, &mut AimType),
+        (Entity, &mut PlayerWeapons, &mut PlayerState, &mut AimType),
         OurPlayerFilter,
     >,
     ui_state: Res<UiState>,
@@ -85,7 +85,7 @@ pub fn handle_input(
         return;
     }
 
-    let (mut player_weapons, mut player_state, mut aim_type) =
+    let (player_entity, mut player_weapons, mut player_state, mut aim_type) =
         player_query.into_inner();
 
     let already_reloading = player_state.reloading;
@@ -132,6 +132,10 @@ pub fn handle_input(
         }
 
         current_weapon_state.loaded_ammo -= 1;
+        info!(
+            ?current_weapon_state,
+            "Decreasing loaded_ammo on player {player_entity}"
+        );
 
         player_shot_messsage_writer.write(PlayerWeaponFiredMessage);
 
@@ -143,6 +147,13 @@ pub fn handle_input(
         )));
     }
 
+    if reload_button_pressed {
+        info!(
+            ?weapon_is_full,
+            ?already_reloading,
+            "RELOAD BUTTON PRESSED!"
+        );
+    }
     if reload_button_pressed && !weapon_is_full && !already_reloading {
         *aim_type = AimType::Normal;
         reload_player_weapon_message_writer.write(ReloadPlayerWeaponMessage);
@@ -285,7 +296,10 @@ pub fn tick_player_weapon_shoot_cooldown_timer(
 
 pub fn handle_reload_player_weapon_message(
     mut commands: Commands,
-    player_query: Single<(&mut PlayerWeapons, &mut PlayerState)>,
+    player_query: Single<
+        (&mut PlayerWeapons, &mut PlayerState),
+        OurPlayerFilter,
+    >,
     mut message_reader: MessageReader<ReloadPlayerWeaponMessage>,
     mut player_weapon_model_transform: Single<
         &mut Transform,
@@ -325,7 +339,10 @@ pub fn handle_reload_player_weapon_message(
 }
 
 pub fn handle_player_weapon_reload_timer(
-    player_weapons: Single<(&mut PlayerWeapons, &mut PlayerState)>,
+    player_weapons: Single<
+        (&mut PlayerWeapons, &mut PlayerState),
+        OurPlayerFilter,
+    >,
     reload_timer: Option<ResMut<WeaponReloadTimer>>,
     time: Res<Time>,
 ) {
@@ -370,7 +387,10 @@ pub fn handle_weapon_slot_change(
     mut commands: Commands,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut mouse_scroll_message_reader: MessageReader<MouseWheel>,
-    player_query: Single<(&mut PlayerWeapons, &mut PlayerState), With<Owned>>,
+    player_query: Single<
+        (&mut PlayerWeapons, &mut PlayerState),
+        OurPlayerFilter,
+    >,
     mut message_writer: MessageWriter<PlayerWeaponSlotChangeMessage>,
     existing_change_weapon_cooldown: Option<Res<ChangeWeaponCooldown>>,
     mut update_player_weapon_model_message_writer: MessageWriter<
@@ -448,7 +468,7 @@ pub fn handle_player_scope_aim(
     mouse_input: Res<ButtonInput<MouseButton>>,
     player_query: Single<
         (&mut AimType, &PlayerState, &PlayerWeapons),
-        With<Owned>,
+        OurPlayerFilter,
     >,
     app_debug_state: Res<AppDebugState>,
 ) {
