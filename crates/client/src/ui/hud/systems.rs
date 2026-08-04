@@ -438,7 +438,7 @@ pub fn fade_out_damage_indicator(
         if damage_indicator.0.is_finished() {
             let current_alpha = image_node.color.alpha();
             let new_alpha = current_alpha - 0.05;
-            if new_alpha == 0.0 {
+            if new_alpha <= 0.0 {
                 commands.entity(entity).despawn();
                 continue;
             }
