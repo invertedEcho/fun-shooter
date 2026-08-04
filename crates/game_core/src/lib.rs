@@ -225,7 +225,7 @@ fn on_game_core_loading_state_done(
 fn handle_client_respawn_requests(
     mut commands: Commands,
     mut message_reader: MessageReader<FromClient<ClientRespawnRequest>>,
-    mut player_query: Query<(Entity, &mut Health, &OwnedBy, &mut Transform)>,
+    mut player_query: Query<(Entity, &mut Health, &Owner, &mut Transform)>,
     mut message_writer: MessageWriter<ToClients<ConfirmRespawn>>,
 ) {
     for message in message_reader.read() {
@@ -234,7 +234,7 @@ fn handle_client_respawn_requests(
         let Some((player_entity, mut player_health, _, mut transform)) =
             player_query
                 .iter_mut()
-                .find(|(_, _, owned_by, _)| owned_by.0 == client_peer_id)
+                .find(|(_, _, owner, _)| owner.0 == client_peer_id)
         else {
             warn!(
                 "Read a ClientRespawnRequest but couldn't figure out to which \

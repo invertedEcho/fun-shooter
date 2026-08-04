@@ -22,7 +22,7 @@ pub fn enemy_shoot_player(
         &Transform,
         Option<&EnemyShootCooldownTimer>,
     )>,
-    player_query: Query<(&Transform, &OwnedBy), With<Player>>,
+    player_query: Query<(&Transform, &Owner), With<Player>>,
     spatial_query: SpatialQuery,
     mut health_query: Query<&mut Health>,
     mut game_score: Single<&mut GameScore>,
@@ -39,8 +39,7 @@ pub fn enemy_shoot_player(
             continue;
         };
 
-        let Ok((player_transform, player_owned_by)) =
-            player_query.get(*player_to_attack)
+        let Ok((player_transform, owner)) = player_query.get(*player_to_attack)
         else {
             continue;
         };
@@ -89,13 +88,13 @@ pub fn enemy_shoot_player(
 
             info!(
                 "sending network message player hit message to client {:?}",
-                player_owned_by.0
+                owner.0
             );
             message_writer.write(ToClients {
                 message: PlayerHitMessage {
                     origin: enemy_transform.translation,
                 },
-                target: NetworkMessageTarget::Clients(vec![player_owned_by.0]),
+                target: NetworkMessageTarget::Clients(vec![owner.0]),
             });
 
             if health.0 <= 0.0 {
@@ -107,7 +106,7 @@ pub fn enemy_shoot_player(
                 };
 
                 if let Some(game_score_player) =
-                    game_score.players.get_mut(&player_owned_by.0)
+                    game_score.players.get_mut(&owner.0)
                 {
                     game_score_player.deaths += 1;
                 };

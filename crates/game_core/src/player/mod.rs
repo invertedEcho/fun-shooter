@@ -51,7 +51,11 @@ fn spawn_player_on_new_client(
                 ReplicateEntity,
                 SyncPosition::default(),
                 Visibility::Visible,
-                OwnedBy(*peer_id),
+                Owner(*peer_id),
+                // we give the client authority too, as we dont have client-prediction yet in netvy.
+                // Otherwise, the client wouldnt be able to change the transform of its own player,
+                // as it would get overriden by `apply_internal_sync_position`
+                Authority(*peer_id),
                 Collider::capsule(
                     CHARACTER_CAPSULE_RADIUS,
                     CHARACTER_CAPSULE_LENGTH,
@@ -106,7 +110,7 @@ fn handle_shoot_requests(
     mut message_writer: MessageWriter<ToClients<PlayerHitMessage>>,
     mut health_query: Query<&mut Health>,
     spatial_query: SpatialQuery,
-    player_query: Query<(Entity, &OwnedBy, &PlayerWeapons), With<Player>>,
+    player_query: Query<(Entity, &Owner, &PlayerWeapons), With<Player>>,
     mut game_score: Single<&mut GameScore>,
     enemy_query: Query<Entity, With<Enemy>>,
     mut player_hit_enemy_message_writer: MessageWriter<PlayerHitEnemy>,
@@ -168,8 +172,7 @@ fn handle_shoot_requests(
                 enemy_entity: entity_hit,
             });
         } else {
-            let Ok((_, player_owned_by, _)) = player_query.get(entity_hit)
-            else {
+            let Ok((_, owner, _)) = player_query.get(entity_hit) else {
                 error!("Could not determine which player was hit");
                 continue;
             };
@@ -177,7 +180,7 @@ fn handle_shoot_requests(
                 message: PlayerHitMessage {
                     origin: message.origin,
                 },
-                target: NetworkMessageTarget::Clients(vec![player_owned_by.0]),
+                target: NetworkMessageTarget::Clients(vec![owner.0]),
             });
         }
 
