@@ -29,6 +29,7 @@ use crate::{
         spawn::{EnemySpawnStrategy, SpawnEnemiesMessage},
     },
     game_flow::{GameFlowPlugin, get_enemy_count_per_wave},
+    game_score::GameScorePlugin,
     nav_mesh_pathfinding::NavMeshPathfindingPlugin,
     player::PlayerPlugin,
     world_objects::{WorldObjectsPlugin, components::MapModel},
@@ -36,6 +37,7 @@ use crate::{
 
 mod enemy;
 mod game_flow;
+mod game_score;
 mod nav_mesh_pathfinding;
 mod player;
 mod world_objects;
@@ -99,6 +101,7 @@ impl Plugin for GameCorePlugin {
         app.add_plugins(GameFlowPlugin);
         app.add_plugins(WorldObjectsPlugin);
         app.add_plugins(PlayerPlugin);
+        app.add_plugins(GameScorePlugin);
 
         app.add_systems(
             Update,

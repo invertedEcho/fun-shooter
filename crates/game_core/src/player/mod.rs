@@ -2,7 +2,7 @@ use avian3d::prelude::*;
 use bevy::{color::palettes::css::WHITE, prelude::*};
 use netvy::prelude::*;
 use shared::{
-    AppRole, GameConfigServer, GameMode,
+    AppRole,
     character_controller::{
         CHARACTER_CAPSULE_LENGTH, CHARACTER_CAPSULE_RADIUS,
     },
@@ -14,7 +14,9 @@ use shared::{
     shooting::{MAX_SHOOTING_DISTANCE, PlayerWeapons},
 };
 
-use crate::enemy::ai::messages::PlayerHitEnemy;
+use crate::{
+    enemy::ai::messages::PlayerHitEnemy, game_score::AddKillAndDeathGameScore,
+};
 
 pub struct PlayerPlugin;
 
@@ -111,13 +113,12 @@ fn handle_shoot_requests(
     mut health_query: Query<&mut Health>,
     spatial_query: SpatialQuery,
     player_query: Query<(Entity, &Owner, &PlayerWeapons), With<Player>>,
-    mut game_score: Single<&mut GameScore>,
     enemy_query: Query<Entity, With<Enemy>>,
     mut player_hit_enemy_message_writer: MessageWriter<PlayerHitEnemy>,
-    game_config_server: Res<GameConfigServer>,
+    mut add_kill_and_death_game_score_message_writer: MessageWriter<
+        AddKillAndDeathGameScore,
+    >,
 ) {
-    let game_mode = &game_config_server.0.game_mode;
-
     for message in message_reader.read() {
         let source_client = message.source_client;
         let message = &message.message;
@@ -188,31 +189,12 @@ fn handle_shoot_requests(
             let entity_killed = first_hit.entity;
             commands.entity(entity_killed).insert(ColliderDisabled);
 
-            match game_score.players.get_mut(&source_client) {
-                Some(player) => {
-                    debug!(?source_client, "increased kill count of player");
-                    player.kills += 1;
-                }
-                None => {
-                    warn!(
-                        ?source_client,
-                        game_score = ?*game_score,
-                        "Failed to find player in game score by peer_id"
-                    )
-                }
-            }
-
-            // if we have game mode wave, the entity killed will always be an enemy. so we
-            // skip this case
-            if *game_mode == GameMode::Waves {
-                return;
-            };
-            let Some(player_score) = game_score.players.get_mut(&source_client)
-            else {
-                warn!("Failed to find client of player that was killed");
-                continue;
-            };
-            player_score.deaths += 1;
+            add_kill_and_death_game_score_message_writer.write(
+                AddKillAndDeathGameScore {
+                    entity_that_shot: shooter_entity,
+                    entity_killed,
+                },
+            );
         }
     }
 }
