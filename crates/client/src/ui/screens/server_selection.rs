@@ -25,7 +25,11 @@ impl Plugin for ServerSelectionScreenPlugin {
 
         app.add_systems(
             Update,
-            (handle_buttons_interaction, fill_custom_server_address_input),
+            (
+                handle_buttons_interaction,
+                fill_custom_server_address_input,
+                fill_custom_server_port_input,
+            ),
         );
 
         app.add_systems(OnEnter(MainMenuState::ServerSelection), show_screen);
@@ -174,6 +178,17 @@ fn fill_custom_server_address_input(
         editable_text
             .editor
             .set_text(&game_settings.server.last_custom_server_address);
+    }
+}
+
+fn fill_custom_server_port_input(
+    query: Query<&mut EditableText, Added<CustomServerAddressInputPort>>,
+    game_settings: ResMut<GameSettings>,
+) {
+    for mut editable_text in query {
+        editable_text.editor.set_text(
+            &game_settings.server.last_custom_server_port.to_string(),
+        );
     }
 }
 
