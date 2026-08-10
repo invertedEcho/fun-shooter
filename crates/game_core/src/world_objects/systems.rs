@@ -100,6 +100,7 @@ pub fn spawn_world_objects(
                 active: true,
                 position: spawn_location.position,
             },
+            Name::new("WorldObjectCollectibleServerSide"),
             CollidingEntities::default(),
             RespawnTimer(Timer::from_seconds(5.0, TimerMode::Repeating)),
         ));

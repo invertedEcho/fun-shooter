@@ -27,13 +27,13 @@ too_many_arguments = "allow"
 # Queries may access many components, which would undesirably trigger this lint.
 type_complexity = "allow"
 
-[patch.crates-io]
-avian_rerecast = { git = "https://github.com/HeyPlayGames/rerecast", branch = "bevy-0-19" }
-bevy_landmass = { git = "https://github.com/extrawurst/landmass", branch = "landmass-rerecast-bevy-0.19" }
-bevy_rerecast = { git = "https://github.com/HeyPlayGames/rerecast", branch = "bevy-0-19" }
-landmass = { git = "https://github.com/extrawurst/landmass", branch = "landmass-rerecast-bevy-0.19" }
-landmass_rerecast = { git = "https://github.com/extrawurst/landmass", branch = "landmass-rerecast-bevy-0.19" }
-rerecast = { git = "https://github.com/HeyPlayGames/rerecast", branch = "bevy-0-19" }
+# [patch.crates-io]
+# avian_rerecast = { git = "https://github.com/HeyPlayGames/rerecast", branch = "bevy-0-19" }
+# bevy_landmass = { git = "https://github.com/extrawurst/landmass", branch = "landmass-rerecast-bevy-0.19" }
+# bevy_rerecast = { git = "https://github.com/HeyPlayGames/rerecast", branch = "bevy-0-19" }
+# landmass = { git = "https://github.com/extrawurst/landmass", branch = "landmass-rerecast-bevy-0.19" }
+# landmass_rerecast = { git = "https://github.com/extrawurst/landmass", branch = "landmass-rerecast-bevy-0.19" }
+# rerecast = { git = "https://github.com/HeyPlayGames/rerecast", branch = "bevy-0-19" }
 
 # Enable a small amount of optimization in the dev profile.
 [profile.dev]

@@ -442,8 +442,9 @@ dependencies = [
 
 [[package]]
 name = "avian_rerecast"
-version = "0.5.1"
-source = "git+https://github.com/HeyPlayGames/rerecast?branch=bevy-0-19#8920d4ec6e842a7f7f8bccd72c02d1d6ee4da5c3"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "21110f7921916a45f1018b5b0acef4a517915312fdfef84b5adf18465c6792bd"
 dependencies = [
  "avian3d",
  "bevy_app",
@@ -1316,6 +1317,27 @@ dependencies = [
 [[package]]
 name = "bevy_landmass"
 version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d874f6c87a735f88813f23e53e054d818eed96f4b0458a6fe697b7def5559e06"
+dependencies = [
+ "bevy_app",
+ "bevy_asset",
+ "bevy_color",
+ "bevy_ecs",
+ "bevy_gizmos",
+ "bevy_log",
+ "bevy_math",
+ "bevy_mesh",
+ "bevy_platform",
+ "bevy_reflect",
+ "bevy_time",
+ "bevy_transform",
+ "landmass 0.9.2",
+]
+
+[[package]]
+name = "bevy_landmass"
+version = "0.12.0"
 source = "git+https://github.com/extrawurst/landmass?branch=landmass-rerecast-bevy-0.19#508a310b9ef16707b5d858a9d6ce13ceeb6c2cd5"
 dependencies = [
  "bevy_app",
@@ -1330,7 +1352,7 @@ dependencies = [
  "bevy_reflect",
  "bevy_time",
  "bevy_transform",
- "landmass",
+ "landmass 0.9.1",
 ]
 
 [[package]]
@@ -1738,8 +1760,9 @@ dependencies = [
 
 [[package]]
 name = "bevy_rerecast"
-version = "0.4.0"
-source = "git+https://github.com/HeyPlayGames/rerecast?branch=bevy-0-19#8920d4ec6e842a7f7f8bccd72c02d1d6ee4da5c3"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd180c4aeea0d52516248e74954318a479b6bca1507b62e8bd420acdf399c326"
 dependencies = [
  "bevy_app",
  "bevy_rerecast_core",
@@ -1748,8 +1771,9 @@ dependencies = [
 
 [[package]]
 name = "bevy_rerecast_core"
-version = "0.4.1"
-source = "git+https://github.com/HeyPlayGames/rerecast?branch=bevy-0-19#8920d4ec6e842a7f7f8bccd72c02d1d6ee4da5c3"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a2752a8852edcc1ca5b8dd2421fca3a03cf9e5e2278876acf226fe29a22ea064"
 dependencies = [
  "anyhow",
  "bevy_app",
@@ -1774,8 +1798,9 @@ dependencies = [
 
 [[package]]
 name = "bevy_rerecast_editor_integration"
-version = "0.4.1"
-source = "git+https://github.com/HeyPlayGames/rerecast?branch=bevy-0-19#8920d4ec6e842a7f7f8bccd72c02d1d6ee4da5c3"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8bb426dc0d39ce65d81baa9055b26c5c22ab9fabc2fa78c1b519feecdd0400bc"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -2594,7 +2619,7 @@ dependencies = [
  "bevy-inspector-egui",
  "bevy_embedded_assets",
  "bevy_hanabi",
- "bevy_landmass",
+ "bevy_landmass 0.12.0 (git+https://github.com/extrawurst/landmass?branch=landmass-rerecast-bevy-0.19)",
  "bevy_rich_text3d",
  "bevy_skein",
  "dirs",
@@ -3565,7 +3590,7 @@ dependencies = [
  "avian_rerecast",
  "bevy",
  "bevy_common_assets",
- "bevy_landmass",
+ "bevy_landmass 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "bevy_rerecast",
  "landmass_rerecast",
  "netvy",
@@ -4535,14 +4560,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "landmass"
+version = "0.9.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "15479a1a90dd3f4dc1e6d14abc17dab221ba71ecd24e706f85c99b3eaab04aab"
+dependencies = [
+ "disjoint",
+ "dodgy_2d",
+ "geo",
+ "glam 0.30.10",
+ "kdtree",
+ "slotmap",
+ "thiserror 2.0.19",
+]
+
+[[package]]
 name = "landmass_rerecast"
-version = "0.2.0"
-source = "git+https://github.com/extrawurst/landmass?branch=landmass-rerecast-bevy-0.19#508a310b9ef16707b5d858a9d6ce13ceeb6c2cd5"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "52bada7c137575ff59588d617395b61ade1077e877f6c68f43ca0611445868a8"
 dependencies = [
  "bevy_app",
  "bevy_asset",
  "bevy_ecs",
- "bevy_landmass",
+ "bevy_landmass 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "bevy_log",
  "bevy_math",
  "bevy_platform",
@@ -6109,8 +6150,9 @@ checksum = "19b30a45b0cd0bcca8037f3d0dc3421eaf95327a17cad11964fb8179b4fc4832"
 
 [[package]]
 name = "rerecast"
-version = "0.3.4"
-source = "git+https://github.com/HeyPlayGames/rerecast?branch=bevy-0-19#8920d4ec6e842a7f7f8bccd72c02d1d6ee4da5c3"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d91bc1e22832298b01bca704eab9d6fe1d1c8c9cf6a1a44554e678b807884360"
 dependencies = [
  "anyhow",
  "bevy_reflect",
