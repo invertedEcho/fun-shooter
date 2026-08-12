@@ -4,8 +4,8 @@ use netvy::prelude::*;
 use shared::{
     GRAVITY,
     character_controller::{
-        CHARACTER_CAPSULE_LENGTH, CHARACTER_CAPSULE_RADIUS, JUMP_VELOCITY,
-        RUN_VELOCITY, WALK_VELOCITY, apply_collide_and_slide,
+        CHARACTER_CAPSULE_LENGTH, CHARACTER_CAPSULE_RADIUS, DesiredVelocity,
+        JUMP_VELOCITY, RUN_VELOCITY, WALK_VELOCITY, apply_collide_and_slide,
         components::{CharacterController, Grounded},
     },
     enemy::components::Enemy,
@@ -110,6 +110,7 @@ pub fn handle_movement_actions_for_character_controllers(
     mut spatial_query: SpatialQuery,
     time: Res<Time>,
     world_objects_query: Query<Entity, With<WorldObjectCollectibleServerSide>>,
+    mut desired_velocity_res: ResMut<DesiredVelocity>,
 ) {
     for movement_action in movement_action_reader.read() {
         let sprinting = movement_action.sprinting;
@@ -137,25 +138,17 @@ pub fn handle_movement_actions_for_character_controllers(
                 }
             }
             MovementDirection::Move(desired_velocity) => {
-                // exclude world objects because we want to be able to walk through them
-                let excluded_entities: Vec<Entity> = world_objects_query
-                    .iter()
-                    .chain(std::iter::once(character_controller_entity))
-                    .collect();
+                // FIXME: should probably get rid of this message
+                desired_velocity_res.0 = desired_velocity;
 
-                let spatial_query_filter = &SpatialQueryFilter::default()
-                    .with_excluded_entities(excluded_entities.clone());
-
-                apply_collide_and_slide(
-                    &mut velocity,
-                    desired_velocity,
-                    transform,
-                    &mut spatial_query,
-                    spatial_query_filter,
-                    time.delta_secs(),
-                    0,
-                    sprinting,
-                );
+                // // exclude world objects because we want to be able to walk through them
+                // let excluded_entities: Vec<Entity> = world_objects_query
+                //     .iter()
+                //     .chain(std::iter::once(character_controller_entity))
+                //     .collect();
+                //
+                // let spatial_query_filter = &SpatialQueryFilter::default()
+                //     .with_excluded_entities(excluded_entities.clone());
             }
         }
     }

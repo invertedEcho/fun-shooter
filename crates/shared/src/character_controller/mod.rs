@@ -1,5 +1,10 @@
 use avian3d::prelude::*;
 use bevy::prelude::*;
+use netvy::Owned;
+
+use crate::{
+    character_controller::components::CharacterController, player::Player,
+};
 
 pub mod components;
 
@@ -19,10 +24,32 @@ pub const WALK_VELOCITY: f32 = 1.5;
 pub const RUN_VELOCITY: f32 = 3.0;
 pub const JUMP_VELOCITY: f32 = 3.0;
 
+#[derive(Resource)]
+pub struct DesiredVelocity(pub Vec3);
+
+pub fn collide_and_slide_system(
+    character_controllers: Query<
+        (&mut LinearVelocity, &Transform),
+        With<CharacterController>,
+    >,
+) {
+    for (velocity, transform) in character_controllers {
+        apply_collide_and_slide(
+            player_query,
+            desired_velocity,
+            spatial_query,
+            spatial_query_filter,
+            time,
+            current_hit_count,
+            sprinting,
+        );
+    }
+}
+
 pub fn apply_collide_and_slide(
     current_velocity: &mut Vec3,
     desired_velocity: Vec3,
-    origin_transform: &Transform,
+    transform: &Transform,
     spatial_query: &mut SpatialQuery,
     spatial_query_filter: &SpatialQueryFilter,
     time_delta_secs: f32,
@@ -30,7 +57,9 @@ pub fn apply_collide_and_slide(
     sprinting: bool,
 ) {
     const MAX_HITS: usize = 5;
-    let Ok(direction_from_world_velocity) = Dir3::new(desired_velocity) else {
+
+    let Ok(direction_from_world_velocity) = Dir3::new(desired_velocity.0)
+    else {
         return;
     };
 
@@ -40,17 +69,17 @@ pub fn apply_collide_and_slide(
     }
 
     if current_hit_count > MAX_HITS {
-        *current_velocity = Vec3::splat(0.);
+        *current_velocity = Vec3::splat(0.0);
         return;
     }
 
-    let ray_origin = origin_transform.translation
-        - direction_from_world_velocity.as_vec3() * 0.025;
+    let ray_origin =
+        transform.translation - direction_from_world_velocity.as_vec3() * 0.025;
 
     let Some(hit_ahead) = spatial_query.cast_shape(
         &Collider::capsule(CHARACTER_CAPSULE_RADIUS, CHARACTER_CAPSULE_LENGTH),
         ray_origin,
-        origin_transform.rotation,
+        transform.rotation,
         direction_from_world_velocity,
         &ShapeCastConfig {
             max_distance: MAX_DISTANCE_SHAPE_CAST_CHARACTER_CONTROLLER,
@@ -61,7 +90,7 @@ pub fn apply_collide_and_slide(
         // no obstacle in the way, free movement
         let max_delta = get_max_delta(desired_velocity, sprinting);
         let new_velocity = move_towards_vec(
-            current_velocity,
+            &current_velocity,
             desired_velocity,
             max_delta * time_delta_secs,
         );
@@ -78,10 +107,10 @@ pub fn apply_collide_and_slide(
     if slope_climable {
         // this is the most important part to make the slope climbing possible.
         // instead of trying to go straight, we slide along the ground
-        *current_velocity = desired_velocity.reject_from_normalized(normal);
+        current_velocity.0 = desired_velocity.0.reject_from_normalized(normal);
 
         // slope snapping
-        let ray_down_origin = origin_transform.translation + Vec3::Y * 0.5;
+        let ray_down_origin = transform.translation + Vec3::Y * 0.5;
         let ray_down_direction = Dir3::NEG_Y;
         let max_down_distance = 1.0;
 
@@ -95,7 +124,7 @@ pub fn apply_collide_and_slide(
             let hit_down_point =
                 ray_down_origin + ray_down_direction * hit_down.distance;
             let hit_down_y = hit_down_point.y;
-            let player_y = origin_transform.translation.y;
+            let player_y = transform.translation.y;
             let difference_y = hit_down_y - player_y;
             if difference_y.abs() < 0.3 {
                 debug!("Snapping character controller to slope");
@@ -107,16 +136,16 @@ pub fn apply_collide_and_slide(
         // similar to the collide and slide algorithm
         // the main difference is that we ignore the Y part,
         // because its too step, so we dont want to climb up
-        let impulse = desired_velocity.reject_from_normalized(normal);
+        let impulse = desired_velocity.0.reject_from_normalized(normal);
         // we need to check again if the new velocity (impulse) would also penetrate an
         // obstacle until we dont or we reach MAX_HITS, where we just zero out velocity
 
         // update our transform so shape cast origin is correct
         let new_transform = Transform {
-            translation: origin_transform.translation
-                + desired_velocity * time_delta_secs,
-            rotation: origin_transform.rotation,
-            scale: origin_transform.scale,
+            translation: transform.translation
+                + desired_velocity.0 * time_delta_secs,
+            rotation: transform.rotation,
+            scale: transform.scale,
         };
 
         apply_collide_and_slide(

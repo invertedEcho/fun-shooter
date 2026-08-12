@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use shared::character_controller::apply_collide_and_slide;
 
 use crate::{
     character_controller::{
@@ -32,6 +33,7 @@ impl Plugin for CharacterControllerPlugin {
                     handle_movement_actions_for_character_controllers,
                     apply_movement_damping,
                     exclude_added_world_object_from_ground_caster,
+                    apply_collide_and_slide,
                 )
                     .run_if(in_state(AppState::InGame)),
             )
