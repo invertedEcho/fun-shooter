@@ -104,7 +104,7 @@ impl Plugin for GameCorePlugin {
         app.add_plugins(GameScorePlugin);
 
         app.add_systems(
-            Update,
+            FixedUpdate,
             (
                 read_stop_game_message,
                 check_world_scene_loaded,
@@ -113,7 +113,7 @@ impl Plugin for GameCorePlugin {
             ),
         );
         app.add_systems(
-            Update,
+            FixedUpdate,
             (kill_players_below_death_zone)
                 .run_if(not(in_state(AppRole::ClientOnly))),
         );
@@ -123,7 +123,7 @@ impl Plugin for GameCorePlugin {
             on_game_core_loading_state_done,
         );
 
-        app.add_systems(Update, handle_start_game_message);
+        app.add_systems(FixedUpdate, handle_start_game_message);
 
         app.add_systems(
             OnEnter(GameCoreLoadingState::GameScoreFinishedSetup),
@@ -134,7 +134,7 @@ impl Plugin for GameCorePlugin {
         app.add_observer(check_collider_constructor_hierarchy_ready);
 
         app.add_systems(
-            Update,
+            FixedUpdate,
             log_updates_to_game_core_loading_state
                 .run_if(state_changed::<GameCoreLoadingState>),
         );

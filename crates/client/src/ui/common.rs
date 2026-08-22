@@ -69,8 +69,6 @@ pub enum CommonUiButton {
 #[derive(Component)]
 pub struct ExcludeFromHover;
 
-// TODO: This system does way too many things and especially things that aren't relevant for
-// `user_interface` module.
 fn handle_common_ui_button_press(
     mut commands: Commands,
     query: Query<(&Interaction, &CommonUiButton), Changed<Interaction>>,

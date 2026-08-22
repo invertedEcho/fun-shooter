@@ -39,8 +39,9 @@ type_complexity = "allow"
 # Enable a small amount of optimization in the dev profile.
 [profile.dev]
 opt-level = 0
-debug = true
+debug = 0
+strip = "debuginfo"
 
 # Enable a large amount of optimization in the dev profile for dependencies.
 [profile.dev.package."*"]
-opt-level = 3
+opt-level = 2

@@ -123,6 +123,8 @@ fn handle_shoot_requests(
         let source_client = message.source_client;
         let message = &message.message;
 
+        info!(?source_client, "RECEIVED SHOOT REQUEST");
+
         // the player entity that sent this ShootRequest
         let Some((shooter_entity, _, player_weapons)) = player_query
             .iter()
@@ -161,9 +163,11 @@ fn handle_shoot_requests(
             continue;
         };
 
-        health.0 -= player_weapons.weapons[player_weapons.active_weapon_slot]
+        let health_to_substract = player_weapons.weapons
+            [player_weapons.active_weapon_slot]
             .game_weapon
             .damage;
+        health.0 -= health_to_substract;
 
         let is_enemy = enemy_query.get(entity_hit).is_ok();
 
@@ -177,6 +181,11 @@ fn handle_shoot_requests(
                 error!("Could not determine which player was hit");
                 continue;
             };
+            info!(
+                "Substracted {health_to_substract} from health component of \
+                 player {:?}",
+                owner.0
+            );
             message_writer.write(ToClients {
                 message: PlayerHitMessage {
                     origin: message.origin,
