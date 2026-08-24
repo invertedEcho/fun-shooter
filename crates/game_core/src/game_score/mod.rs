@@ -1,7 +1,8 @@
 use bevy::prelude::*;
 use netvy::prelude::*;
 use shared::{
-    AppRole, enemy::components::Enemy, game_score::GameScore, player::Player,
+    AppRole, StopGame, enemy::components::Enemy, game_score::GameScore,
+    player::Player,
 };
 
 pub struct GameScorePlugin;
@@ -12,7 +13,11 @@ impl Plugin for GameScorePlugin {
 
         app.add_systems(
             FixedUpdate,
-            (update_game_score, remove_player_game_score),
+            (
+                update_game_score,
+                remove_player_game_score,
+                despawn_game_score,
+            ),
         );
     }
 }
@@ -114,6 +119,18 @@ fn remove_player_game_score(
                      player wont be removed from GameScore"
                 );
             }
+        }
+    }
+}
+
+fn despawn_game_score(
+    mut commands: Commands,
+    mut message_reader: MessageReader<StopGame>,
+    game_score: Query<Entity, With<GameScore>>,
+) {
+    for _ in message_reader.read() {
+        for entity in game_score {
+            commands.entity(entity).despawn();
         }
     }
 }

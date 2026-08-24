@@ -79,9 +79,15 @@ pub fn handle_input(
         OurPlayerFilter,
     >,
     ui_state: Res<UiState>,
-    app_debug_state: Res<AppDebugState>,
+    app_debug_state: Option<Res<AppDebugState>>,
 ) {
-    if ui_state.buy_overlay_visible || app_debug_state.new_weapon_position {
+    if ui_state.buy_overlay_visible {
+        return;
+    }
+
+    if let Some(app_debug_state) = app_debug_state
+        && app_debug_state.new_weapon_position
+    {
         return;
     }
 
@@ -385,9 +391,11 @@ pub fn handle_weapon_slot_change(
     mut update_player_weapon_model_message_writer: MessageWriter<
         UpdatePlayerWeaponModel,
     >,
-    app_debug_state: Res<AppDebugState>,
+    app_debug_state: Option<Res<AppDebugState>>,
 ) {
-    if app_debug_state.new_weapon_position {
+    if let Some(app_debug_state) = app_debug_state
+        && app_debug_state.new_weapon_position
+    {
         return;
     }
 
@@ -459,9 +467,11 @@ pub fn handle_player_scope_aim(
         (&mut AimType, &PlayerState, &PlayerWeapons),
         OurPlayerFilter,
     >,
-    app_debug_state: Res<AppDebugState>,
+    app_debug_state: Option<Res<AppDebugState>>,
 ) {
-    if app_debug_state.new_weapon_position {
+    if let Some(app_debug_state) = app_debug_state
+        && app_debug_state.new_weapon_position
+    {
         return;
     }
 
