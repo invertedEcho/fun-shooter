@@ -181,7 +181,7 @@ fn handle_shoot_requests(
                 error!("Could not determine which player was hit");
                 continue;
             };
-            info!(
+            debug!(
                 "Substracted {health_to_substract} from health component of \
                  player {:?}",
                 owner.0
