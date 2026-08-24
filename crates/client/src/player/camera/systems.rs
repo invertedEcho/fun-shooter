@@ -307,9 +307,15 @@ pub fn weapon_sway(
     mouse_motion: Res<AccumulatedMouseMotion>,
     mut transform: Single<&mut Transform, With<PlayerWeaponModel>>,
     ui_state: Res<UiState>,
-    app_debug_state: Res<AppDebugState>,
+    app_debug_state: Option<Res<AppDebugState>>,
 ) {
-    if ui_state.buy_overlay_visible || app_debug_state.new_weapon_position {
+    if ui_state.buy_overlay_visible {
+        return;
+    }
+
+    if let Some(app_debug_state) = app_debug_state
+        && app_debug_state.new_weapon_position
+    {
         return;
     }
 
