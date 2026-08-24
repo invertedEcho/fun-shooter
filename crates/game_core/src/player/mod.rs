@@ -123,8 +123,6 @@ fn handle_shoot_requests(
         let source_client = message.source_client;
         let message = &message.message;
 
-        info!(?source_client, "RECEIVED SHOOT REQUEST");
-
         // the player entity that sent this ShootRequest
         let Some((shooter_entity, _, player_weapons)) = player_query
             .iter()
