@@ -1,10 +1,7 @@
 use netvy::prelude::*;
 
 use avian3d::prelude::*;
-use bevy::{
-    camera::visibility::RenderLayers, platform::collections::HashMap,
-    prelude::*, reflect::TypePath,
-};
+use bevy::{camera::visibility::RenderLayers, prelude::*, reflect::TypePath};
 use bevy_common_assets::json::JsonAssetPlugin;
 use serde::{Deserialize, Serialize};
 use shared::{
@@ -123,7 +120,7 @@ impl Plugin for GameCorePlugin {
             on_game_core_loading_state_done,
         );
 
-        app.add_systems(FixedUpdate, handle_start_game_message);
+        app.add_systems(FixedUpdate, setup_game_config_server);
 
         app.add_systems(
             OnEnter(GameCoreLoadingState::GameScoreFinishedSetup),
@@ -141,32 +138,13 @@ impl Plugin for GameCorePlugin {
     }
 }
 
-fn handle_start_game_message(
+fn setup_game_config_server(
     mut commands: Commands,
-    mut next_server_loading_state: ResMut<NextState<GameCoreLoadingState>>,
-    app_role: Res<State<AppRole>>,
     mut start_game_message_reader: MessageReader<StartGame>,
 ) {
     for message in start_game_message_reader.read() {
         commands.insert_resource(GameConfigServer(message.0));
-
         info!("Received StartGame message");
-
-        if *app_role.get() != AppRole::ClientOnly {
-            commands.spawn((
-                GameScore {
-                    players: HashMap::new(),
-                    enemies: HashMap::new(),
-                },
-                Name::new("Game Score"),
-                ReplicateEntity,
-            ));
-        }
-
-        // NOTE: theoretically the game score entity is not necessarily already spawned here, but we
-        // just do it here as spawning such a simple entity is trivial.
-        next_server_loading_state
-            .set(GameCoreLoadingState::GameScoreFinishedSetup);
     }
 }
 

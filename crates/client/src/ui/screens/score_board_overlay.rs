@@ -1,7 +1,7 @@
 use bevy::{color::palettes::css::BLACK, prelude::*};
 use shared::game_score::GameScore;
 
-use crate::ui::UiState;
+use crate::{game_flow::states::InGameState, ui::UiState};
 
 #[derive(Component)]
 struct ScoreBoardOverlay;
@@ -13,7 +13,11 @@ impl Plugin for ScoreBoardOverlayPlugin {
         app.add_systems(Startup, spawn_score_board_overlay);
         app.add_systems(
             Update,
-            (change_score_board_overlay_visibility, update_score_board),
+            (
+                change_score_board_overlay_visibility
+                    .run_if(in_state(InGameState::Playing)),
+                update_score_board,
+            ),
         );
     }
 }

@@ -1,9 +1,11 @@
-use bevy::prelude::*;
+use bevy::{platform::collections::HashMap, prelude::*};
 use netvy::prelude::*;
 use shared::{
-    AppRole, StopGame, enemy::components::Enemy, game_score::GameScore,
-    player::Player,
+    AppRole, StartGame, StopGame, enemy::components::Enemy,
+    game_score::GameScore, player::Player,
 };
+
+use crate::GameCoreLoadingState;
 
 pub struct GameScorePlugin;
 
@@ -17,8 +19,41 @@ impl Plugin for GameScorePlugin {
                 update_game_score,
                 remove_player_game_score,
                 despawn_game_score,
+                spawn_game_score,
             ),
         );
+    }
+}
+
+fn spawn_game_score(
+    mut commands: Commands,
+    app_role: Res<State<AppRole>>,
+    mut next_game_core_loading_state: ResMut<NextState<GameCoreLoadingState>>,
+    mut message_reader: MessageReader<StartGame>,
+) {
+    for _ in message_reader.read() {
+        if *app_role.get() != AppRole::ClientOnly {
+            info!("Received StartGame message, spawning GameScore");
+            // so server spawns this. it gets replicated to client. but somehow it wont get synced
+            // again to a client reconnectin, e.g. stopping game and then joining again?
+            commands.spawn((
+                GameScore {
+                    players: HashMap::new(),
+                    enemies: HashMap::new(),
+                },
+                Name::new("Game Score"),
+                ReplicateEntity,
+            ));
+        } else {
+            info!(
+                "Not spawning GameScore on StartGame message, we are ClientOnly."
+            );
+        }
+
+        // theoretically the game score entity is not necessarily already spawned here, but we
+        // just do it here as spawning such a simple entity is trivial.
+        next_game_core_loading_state
+            .set(GameCoreLoadingState::GameScoreFinishedSetup);
     }
 }
 
@@ -97,20 +132,19 @@ fn update_game_score(
     }
 }
 
+// No need to do this on the client too, as GameScore will get synced to clients
 fn remove_player_game_score(
-    mut client_disconnected: MessageReader<FromServer<ClientDisconnected>>,
+    mut client_disconnected: MessageReader<ClientDisconnectedServer>,
     mut game_score: Query<&mut GameScore>,
-    app_role: Res<State<AppRole>>,
 ) {
-    // GameScore is only spawned on server
-    if *app_role.get() == AppRole::ClientOnly {
-        return;
-    }
-
     for message in client_disconnected.read() {
+        info!(
+            "Client {:?} disconnected, removing its player from GameScore",
+            message.client
+        );
         match game_score.single_mut() {
             Ok(mut game_score) => {
-                game_score.players.remove(&message.0.client);
+                game_score.players.remove(&message.client);
             }
             Err(error) => {
                 error!(
@@ -129,7 +163,9 @@ fn despawn_game_score(
     game_score: Query<Entity, With<GameScore>>,
 ) {
     for _ in message_reader.read() {
+        info!("Read StopGame, despawning all GameScore");
         for entity in game_score {
+            info!("Despawning GameScore entity {entity}");
             commands.entity(entity).despawn();
         }
     }
