@@ -206,16 +206,19 @@ fn on_game_core_loading_state_done(
 fn handle_client_respawn_requests(
     mut commands: Commands,
     mut message_reader: MessageReader<FromClient<ClientRespawnRequest>>,
-    mut player_query: Query<(Entity, &mut Health, &Owner, &mut Transform)>,
+    mut player_query: Query<(Entity, &NetEntityId, &mut Health, &Owner)>,
     mut message_writer: MessageWriter<ToClients<ConfirmRespawn>>,
 ) {
     for message in message_reader.read() {
-        info!("Received ClientRespawnRequest!");
+        info!(
+            "Received ClientRespawnRequest! Updating health and position of player"
+        );
+
         let client_peer_id = message.source_client;
-        let Some((player_entity, mut player_health, _, mut transform)) =
+        let Some((player_entity, net_entity_id, mut player_health, _)) =
             player_query
                 .iter_mut()
-                .find(|(_, _, owner, _)| owner.0 == client_peer_id)
+                .find(|(_, _, _, owner)| owner.0 == client_peer_id)
         else {
             warn!(
                 "Read a ClientRespawnRequest but couldn't figure out to which \
@@ -226,7 +229,10 @@ fn handle_client_respawn_requests(
 
         player_health.0 = DEFAULT_HEALTH;
 
-        transform.translation = SPAWN_POINT_MEDIUM_PLASTIC_MAP;
+        commands.queue(TeleportNetEntity {
+            net_entity_id: *net_entity_id,
+            position: SPAWN_POINT_MEDIUM_PLASTIC_MAP,
+        });
 
         commands.entity(player_entity).remove::<ColliderDisabled>();
 
