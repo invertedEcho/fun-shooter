@@ -41,7 +41,9 @@ pub fn setup_player_cameras(
 ) {
     for added_player in added_players {
         info!("Player was added with Owned component, spawning player camera");
-        message_writer.write(SpawnPlayerCamera(added_player));
+        message_writer.write(SpawnPlayerCamera {
+            player_entity: added_player,
+        });
     }
 }
 
@@ -57,9 +59,14 @@ pub fn handle_spawn_player_camera_message(
             commands.entity(main_menu_camera).despawn();
         }
 
-        commands.entity(message.0).insert(PlayerCameraState::Normal);
+        let player_entity = message.player_entity;
+        commands
+            .entity(player_entity)
+            .insert(PlayerCameraState::Normal);
 
-        commands.entity(message.0).with_children(|parent| {
+        let mut view_model_camera_entity: Option<Entity> = None;
+
+        commands.entity(player_entity).with_children(|parent| {
             parent.spawn((
                 Name::new("WorldCamera"),
                 WorldCamera,
@@ -96,7 +103,7 @@ pub fn handle_spawn_player_camera_message(
                 .load(GltfAssetLabel::Scene(0).from_asset(weapon_model_path));
             let weapon_position =
                 get_position_for_weapon(&WeaponKind::AK47, &AimType::Normal);
-            parent
+            let view_model_camera = parent
                 .spawn((
                     Name::new("ViewModelCamera"),
                     ViewModelCamera,
@@ -123,7 +130,15 @@ pub fn handle_spawn_player_camera_message(
                     PlayerWeaponModel,
                     Visibility::Visible,
                     RenderLayers::layer(1),
-                ));
+                ))
+                .id();
+            view_model_camera_entity = Some(view_model_camera);
+        });
+        commands.entity(player_entity).insert(SyncRotation {
+            linear_interpolation: true,
+            alternate_source_rotation_entity: view_model_camera_entity,
+            lock_pitch: true,
+            ..default()
         });
     }
 }
@@ -218,7 +233,7 @@ pub fn toggle_freecam(
                 info!("PlayerCameraState updated to Normal");
                 *player_camera_state = PlayerCameraState::Normal;
 
-                message_writer.write(SpawnPlayerCamera(player_entity));
+                message_writer.write(SpawnPlayerCamera { player_entity });
             }
         }
     }

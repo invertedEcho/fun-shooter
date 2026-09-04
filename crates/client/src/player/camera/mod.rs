@@ -24,7 +24,9 @@ pub mod weapon_positions;
 pub const PLAYER_CAMERA_Y_OFFSET: f32 = 0.4;
 
 #[derive(Message)]
-pub struct SpawnPlayerCamera(pub Entity);
+pub struct SpawnPlayerCamera {
+    player_entity: Entity,
+}
 
 pub struct PlayerCameraPlugin;
 
