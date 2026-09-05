@@ -52,19 +52,22 @@ pub fn handle_spawn_player_camera_message(
     asset_server: Res<AssetServer>,
     mut commands: Commands,
     main_menu_camera: Query<Entity, With<MainMenuCamera>>,
+    player_query: Query<&NetEntityId, With<Player>>,
 ) {
     for message in message_reader.read() {
+        let player_entity = message.player_entity;
+
         for main_menu_camera in main_menu_camera {
             debug!("Despawning main menu camera before spawning player camera");
             commands.entity(main_menu_camera).despawn();
         }
 
-        let player_entity = message.player_entity;
+        // the player entity will exist because the message is written from the same app
+        let net_entity_id_of_player = player_query.get(player_entity).unwrap();
+
         commands
             .entity(player_entity)
             .insert(PlayerCameraState::Normal);
-
-        let mut view_model_camera_entity: Option<Entity> = None;
 
         commands.entity(player_entity).with_children(|parent| {
             parent.spawn((
@@ -103,7 +106,7 @@ pub fn handle_spawn_player_camera_message(
                 .load(GltfAssetLabel::Scene(0).from_asset(weapon_model_path));
             let weapon_position =
                 get_position_for_weapon(&WeaponKind::AK47, &AimType::Normal);
-            let view_model_camera = parent
+            parent
                 .spawn((
                     Name::new("ViewModelCamera"),
                     ViewModelCamera,
@@ -118,6 +121,7 @@ pub fn handle_spawn_player_camera_message(
                         fov: 70.0,
                         ..default()
                     }),
+                    AlternateSourceRotation(*net_entity_id_of_player),
                 ))
                 .with_child((
                     Name::new("PlayerWeaponModel"),
@@ -130,15 +134,7 @@ pub fn handle_spawn_player_camera_message(
                     PlayerWeaponModel,
                     Visibility::Visible,
                     RenderLayers::layer(1),
-                ))
-                .id();
-            view_model_camera_entity = Some(view_model_camera);
-        });
-        commands.entity(player_entity).insert(SyncRotation {
-            linear_interpolation: true,
-            alternate_source_rotation_entity: view_model_camera_entity,
-            lock_pitch: true,
-            ..default()
+                ));
         });
     }
 }

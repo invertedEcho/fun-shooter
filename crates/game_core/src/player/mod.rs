@@ -52,6 +52,7 @@ fn spawn_player_on_new_client(
                 Name::new("Player"),
                 ReplicateEntity,
                 SyncPosition::default(),
+                SyncRotation::default(),
                 Visibility::Visible,
                 Owner(*peer_id),
                 // we give the client authority too, as we dont have client-prediction yet in netvy.

@@ -1,15 +1,12 @@
-use bevy::{camera::visibility::RenderLayers, prelude::*};
+use bevy::prelude::*;
 use netvy::prelude::*;
 use shared::{
-    player::{AimType, OurPlayerReady, Player},
+    player::{OurPlayerReady, Player},
     shooting::{PlayerWeapons, WeaponKind},
 };
 
 use crate::player::{
-    camera::{
-        PlayerCameraPlugin, components::PlayerWeaponModel,
-        weapon_positions::get_position_for_weapon,
-    },
+    camera::{PlayerCameraPlugin, components::PlayerWeaponModel},
     shooting::{
         PlayerShootingPlugin, asset_paths::get_path_to_model_for_weapon_kind,
     },
@@ -56,7 +53,7 @@ fn mark_players_as_ready(
 fn add_player_weapon_model_on_new_player(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    player_query: Query<(Entity, &Owner), Added<Player>>,
+    player_query: Query<(Entity, &Owner, &NetEntityId), Added<Player>>,
     our_peer_id: If<Res<OurPeerId>>,
 ) {
     let weapon_model_path =
@@ -64,7 +61,7 @@ fn add_player_weapon_model_on_new_player(
     let weapon_model = asset_server
         .load(GltfAssetLabel::Scene(0).from_asset(weapon_model_path));
 
-    for (player_entity, owner) in player_query {
+    for (player_entity, owner, net_entity_id) in player_query {
         // we dont add player weapon model to our own player as we already do that elsewhere, with
         // different handling
         if owner.0.0 == our_peer_id.0.0.0 {
@@ -80,6 +77,7 @@ fn add_player_weapon_model_on_new_player(
                 },
                 PlayerWeaponModel,
                 Visibility::Visible,
+                AlternateTargetRotation(*net_entity_id),
             ));
         });
     }
