@@ -18,7 +18,9 @@ use crate::{
     player::{
         Player, PlayerDeathMessage,
         camera::{
-            components::{PlayerWeaponModel, WorldCamera},
+            components::{
+                OurPlayerWeaponModel, PlayerWeaponModel, WorldCamera,
+            },
             messages::UpdatePlayerWeaponModel,
             weapon_positions::get_position_for_weapon,
         },
@@ -298,7 +300,7 @@ pub fn handle_reload_player_weapon_message(
     mut message_reader: MessageReader<ReloadPlayerWeaponMessage>,
     mut player_weapon_model_transform: Single<
         &mut Transform,
-        With<PlayerWeaponModel>,
+        (With<PlayerWeaponModel>, With<OurPlayerWeaponModel>),
     >,
 ) {
     let (mut player_weapons, mut player_state) = player_query.into_inner();

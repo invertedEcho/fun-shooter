@@ -17,8 +17,9 @@ use crate::{
         camera::{
             PLAYER_CAMERA_Y_OFFSET, SpawnPlayerCamera,
             components::{
-                FreeCam, MainMenuCamera, MuzzleFlash, PlayerCameraState,
-                PlayerWeaponModel, ViewModelCamera, WorldCamera,
+                FreeCam, MainMenuCamera, MuzzleFlash, OurPlayerWeaponModel,
+                PlayerCameraState, PlayerWeaponModel, ViewModelCamera,
+                WorldCamera,
             },
             messages::UpdatePlayerWeaponModel,
             weapon_positions::{
@@ -132,6 +133,7 @@ pub fn handle_spawn_player_camera_message(
                         ..default()
                     },
                     PlayerWeaponModel,
+                    OurPlayerWeaponModel,
                     Visibility::Visible,
                     RenderLayers::layer(1),
                 ));
@@ -302,13 +304,19 @@ pub fn free_cam_orbit(
 }
 
 pub fn make_player_weapon_visible(
-    mut player_weapon: Single<&mut Visibility, With<PlayerWeaponModel>>,
+    mut player_weapon: Single<
+        &mut Visibility,
+        (With<PlayerWeaponModel>, With<OurPlayerWeaponModel>),
+    >,
 ) {
     **player_weapon = Visibility::Visible;
 }
 
 pub fn make_player_weapon_hidden(
-    mut player_weapon: Single<&mut Visibility, With<PlayerWeaponModel>>,
+    mut player_weapon: Single<
+        &mut Visibility,
+        (With<PlayerWeaponModel>, With<OurPlayerWeaponModel>),
+    >,
 ) {
     **player_weapon = Visibility::Hidden;
 }
@@ -316,7 +324,10 @@ pub fn make_player_weapon_hidden(
 pub fn weapon_sway(
     time: Res<Time>,
     mouse_motion: Res<AccumulatedMouseMotion>,
-    mut transform: Single<&mut Transform, With<PlayerWeaponModel>>,
+    mut transform: Single<
+        &mut Transform,
+        (With<PlayerWeaponModel>, With<OurPlayerWeaponModel>),
+    >,
     ui_state: Res<UiState>,
     app_debug_state: Option<Res<AppDebugState>>,
 ) {
@@ -356,7 +367,7 @@ pub fn update_player_weapon_model(
     mut message_reader: MessageReader<UpdatePlayerWeaponModel>,
     player_weapon_model_query: Single<
         (Entity, &mut Transform),
-        With<PlayerWeaponModel>,
+        (With<PlayerWeaponModel>, With<OurPlayerWeaponModel>),
     >,
     player_query: Single<(&PlayerWeapons, &AimType)>,
 ) {
@@ -390,7 +401,10 @@ pub fn spawn_muzzle_flash(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut player_shot_message_reader: MessageReader<PlayerWeaponFiredMessage>,
-    player_weapon_model_entity: Single<Entity, With<PlayerWeaponModel>>,
+    player_weapon_model_entity: Single<
+        Entity,
+        (With<PlayerWeaponModel>, With<OurPlayerWeaponModel>),
+    >,
     player_query: Single<(&PlayerWeapons, &AimType)>,
 ) {
     let (player_weapons, aim_type) = player_query.into_inner();
@@ -432,7 +446,7 @@ pub fn interpolate_weapon_position(
     player_query: Single<(&PlayerWeapons, &AimType, &PlayerState)>,
     mut player_weapon_model_transform: Single<
         &mut Transform,
-        With<PlayerWeaponModel>,
+        (With<PlayerWeaponModel>, With<OurPlayerWeaponModel>),
     >,
     time: Res<Time>,
     app_debug_state: Option<ResMut<AppDebugState>>,
@@ -476,7 +490,7 @@ pub fn interpolate_weapon_position(
 pub fn weapon_model_kickback(
     mut player_weapon_model_transform: Single<
         &mut Transform,
-        With<PlayerWeaponModel>,
+        (With<PlayerWeaponModel>, With<OurPlayerWeaponModel>),
     >,
     mut player_shot_message_reader: MessageReader<PlayerWeaponFiredMessage>,
 ) {
