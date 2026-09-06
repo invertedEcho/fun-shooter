@@ -27,7 +27,7 @@ impl Plugin for WorldObjectsPlugin {
             spawn_world_objects,
         );
         app.add_systems(
-            Update,
+            FixedUpdate,
             (
                 detect_collision_world_object_with_player,
                 activate_world_objects_over_time,

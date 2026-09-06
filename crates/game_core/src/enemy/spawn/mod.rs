@@ -30,7 +30,7 @@ pub struct EnemySpawnPlugin;
 impl Plugin for EnemySpawnPlugin {
     fn build(&self, app: &mut App) {
         app.add_message::<SpawnEnemiesMessage>()
-            .add_systems(Update, handle_spawn_enemies_message);
+            .add_systems(FixedUpdate, handle_spawn_enemies_message);
     }
 }
 

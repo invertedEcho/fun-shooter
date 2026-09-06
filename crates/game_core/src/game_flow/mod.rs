@@ -26,7 +26,7 @@ impl Plugin for GameFlowPlugin {
             .add_message::<RequestNewWave>();
 
         app.add_systems(
-            Update,
+            FixedUpdate,
             (
                 handle_enemy_killed_message,
                 handle_retry_wave_game_mode_message,
@@ -40,12 +40,12 @@ impl Plugin for GameFlowPlugin {
         );
 
         app.add_systems(
-            Update,
+            FixedUpdate,
             (handle_next_wave_timer).run_if(in_state(GameStateServer::Running)),
         );
 
         app.add_systems(
-            Update,
+            FixedUpdate,
             detect_wave_finished
                 .run_if(resource_exists_and_changed::<GameStateWave>),
         );

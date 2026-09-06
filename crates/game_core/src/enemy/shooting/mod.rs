@@ -16,7 +16,7 @@ pub struct EnemyShootingPlugin;
 impl Plugin for EnemyShootingPlugin {
     fn build(&self, app: &mut App) {
         app.add_message::<EnemyKilledMessage>().add_systems(
-            Update,
+            FixedUpdate,
             (
                 enemy_shoot_player,
                 tick_enemy_shoot_player_cooldown_timer,
