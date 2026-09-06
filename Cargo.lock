@@ -4825,7 +4825,7 @@ dependencies = [
 [[package]]
 name = "netvy"
 version = "0.4.0"
-source = "git+https://github.com/invertedEcho/netvy.git#ca5da9d812fecdaabcb06bf123ff8df2552f9300"
+source = "git+https://github.com/invertedEcho/netvy.git#1f9c1e985b3b0cb9321b5dd84b3d659bd284851b"
 dependencies = [
  "bevy",
  "bincode",

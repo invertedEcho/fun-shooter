@@ -24,6 +24,10 @@ pub enum PlayerCameraState {
 #[derive(Component)]
 pub struct PlayerWeaponModel;
 
+/// Marker component to differentiate between a remote player's weapon model and our own.
+#[derive(Component)]
+pub struct OurPlayerWeaponModel;
+
 #[derive(Component)]
 pub struct FreeCam;
 

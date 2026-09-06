@@ -11,10 +11,6 @@ use shared::multiplayer_messages::ConfirmRespawn;
 use shared::player::Player;
 use shared::utils::network::{SERVER_PORT, resolve_server_address};
 
-// use crate::auth::{
-//     ConnectTokenRequestTask, fetch_connect_token,
-//     get_connect_token_from_auth_backend,
-// };
 use crate::character_controller::components::CharacterControllerBundle;
 use crate::game_flow::states::{AppState, ClientLoadingState, InGameState};
 
@@ -37,11 +33,6 @@ impl Plugin for NetworkPlugin {
             OnEnter(ClientLoadingState::StartingServer),
             start_host_client_server,
         );
-        // app.add_systems(
-        //     Update,
-        //     fetch_connect_token
-        //         .run_if(resource_exists::<ConnectTokenRequestTask>),
-        // );
         app.add_systems(
             FixedUpdate,
             (
@@ -52,8 +43,6 @@ impl Plugin for NetworkPlugin {
                 handle_connect_to_dedicated_server,
             ),
         );
-        // app.add_observer(handle_added_server);
-        // app.add_observer(handle_disconnect);
     }
 }
 
