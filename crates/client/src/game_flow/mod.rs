@@ -1,17 +1,13 @@
 use bevy::prelude::*;
-use shared::GameMode;
 
 use crate::{
     game_flow::{
-        states::{
-            AppState, ClientLoadingState, InGameState, MainMenuState,
-            PendingGameConfigClient,
-        },
+        states::{AppState, ClientLoadingState, InGameState, MainMenuState},
         systems::{
             check_connection_state, free_mouse, grab_mouse,
             handle_escape_in_game, handle_player_death_event,
-            handle_request_next_wave, manual_mouse_grab_toggle,
-            pause_all_animations, resume_all_animations,
+            manual_mouse_grab_toggle, pause_all_animations,
+            resume_all_animations,
             send_update_game_server_state_request_on_in_game_state_change,
             spawn_main_menu_camera,
         },
@@ -54,14 +50,6 @@ impl Plugin for GameFlowPlugin {
                 Update,
                 send_update_game_server_state_request_on_in_game_state_change
                     .run_if(state_changed::<InGameState>),
-            )
-            .add_systems(
-                Update,
-                handle_request_next_wave.run_if(is_waves_game_mode),
             );
     }
-}
-
-fn is_waves_game_mode(config: Res<PendingGameConfigClient>) -> bool {
-    config.0.game_mode == GameMode::Waves
 }

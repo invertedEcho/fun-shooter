@@ -17,8 +17,9 @@ use crate::{
         camera::{
             PLAYER_CAMERA_Y_OFFSET, SpawnPlayerCamera,
             components::{
-                FreeCam, MainMenuCamera, MuzzleFlash, PlayerCameraState,
-                PlayerWeaponModel, ViewModelCamera, WorldCamera,
+                FreeCam, MainMenuCamera, MuzzleFlash, OurPlayerWeaponModel,
+                PlayerCameraState, PlayerWeaponModel, ViewModelCamera,
+                WorldCamera,
             },
             messages::UpdatePlayerWeaponModel,
             weapon_positions::{
@@ -41,7 +42,9 @@ pub fn setup_player_cameras(
 ) {
     for added_player in added_players {
         info!("Player was added with Owned component, spawning player camera");
-        message_writer.write(SpawnPlayerCamera(added_player));
+        message_writer.write(SpawnPlayerCamera {
+            player_entity: added_player,
+        });
     }
 }
 
@@ -50,16 +53,24 @@ pub fn handle_spawn_player_camera_message(
     asset_server: Res<AssetServer>,
     mut commands: Commands,
     main_menu_camera: Query<Entity, With<MainMenuCamera>>,
+    player_query: Query<&NetEntityId, With<Player>>,
 ) {
     for message in message_reader.read() {
+        let player_entity = message.player_entity;
+
         for main_menu_camera in main_menu_camera {
             debug!("Despawning main menu camera before spawning player camera");
             commands.entity(main_menu_camera).despawn();
         }
 
-        commands.entity(message.0).insert(PlayerCameraState::Normal);
+        // the player entity will exist because the message is written from the same app
+        let net_entity_id_of_player = player_query.get(player_entity).unwrap();
 
-        commands.entity(message.0).with_children(|parent| {
+        commands
+            .entity(player_entity)
+            .insert(PlayerCameraState::Normal);
+
+        commands.entity(player_entity).with_children(|parent| {
             parent.spawn((
                 Name::new("WorldCamera"),
                 WorldCamera,
@@ -111,6 +122,7 @@ pub fn handle_spawn_player_camera_message(
                         fov: 70.0,
                         ..default()
                     }),
+                    AlternateSourceRotation(*net_entity_id_of_player),
                 ))
                 .with_child((
                     Name::new("PlayerWeaponModel"),
@@ -121,6 +133,7 @@ pub fn handle_spawn_player_camera_message(
                         ..default()
                     },
                     PlayerWeaponModel,
+                    OurPlayerWeaponModel,
                     Visibility::Visible,
                     RenderLayers::layer(1),
                 ));
@@ -218,7 +231,7 @@ pub fn toggle_freecam(
                 info!("PlayerCameraState updated to Normal");
                 *player_camera_state = PlayerCameraState::Normal;
 
-                message_writer.write(SpawnPlayerCamera(player_entity));
+                message_writer.write(SpawnPlayerCamera { player_entity });
             }
         }
     }
@@ -291,13 +304,19 @@ pub fn free_cam_orbit(
 }
 
 pub fn make_player_weapon_visible(
-    mut player_weapon: Single<&mut Visibility, With<PlayerWeaponModel>>,
+    mut player_weapon: Single<
+        &mut Visibility,
+        (With<PlayerWeaponModel>, With<OurPlayerWeaponModel>),
+    >,
 ) {
     **player_weapon = Visibility::Visible;
 }
 
 pub fn make_player_weapon_hidden(
-    mut player_weapon: Single<&mut Visibility, With<PlayerWeaponModel>>,
+    mut player_weapon: Single<
+        &mut Visibility,
+        (With<PlayerWeaponModel>, With<OurPlayerWeaponModel>),
+    >,
 ) {
     **player_weapon = Visibility::Hidden;
 }
@@ -305,11 +324,20 @@ pub fn make_player_weapon_hidden(
 pub fn weapon_sway(
     time: Res<Time>,
     mouse_motion: Res<AccumulatedMouseMotion>,
-    mut transform: Single<&mut Transform, With<PlayerWeaponModel>>,
+    mut transform: Single<
+        &mut Transform,
+        (With<PlayerWeaponModel>, With<OurPlayerWeaponModel>),
+    >,
     ui_state: Res<UiState>,
-    app_debug_state: Res<AppDebugState>,
+    app_debug_state: Option<Res<AppDebugState>>,
 ) {
-    if ui_state.buy_overlay_visible || app_debug_state.new_weapon_position {
+    if ui_state.buy_overlay_visible {
+        return;
+    }
+
+    if let Some(app_debug_state) = app_debug_state
+        && app_debug_state.new_weapon_position
+    {
         return;
     }
 
@@ -339,7 +367,7 @@ pub fn update_player_weapon_model(
     mut message_reader: MessageReader<UpdatePlayerWeaponModel>,
     player_weapon_model_query: Single<
         (Entity, &mut Transform),
-        With<PlayerWeaponModel>,
+        (With<PlayerWeaponModel>, With<OurPlayerWeaponModel>),
     >,
     player_query: Single<(&PlayerWeapons, &AimType)>,
 ) {
@@ -373,7 +401,10 @@ pub fn spawn_muzzle_flash(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut player_shot_message_reader: MessageReader<PlayerWeaponFiredMessage>,
-    player_weapon_model_entity: Single<Entity, With<PlayerWeaponModel>>,
+    player_weapon_model_entity: Single<
+        Entity,
+        (With<PlayerWeaponModel>, With<OurPlayerWeaponModel>),
+    >,
     player_query: Single<(&PlayerWeapons, &AimType)>,
 ) {
     let (player_weapons, aim_type) = player_query.into_inner();
@@ -415,7 +446,7 @@ pub fn interpolate_weapon_position(
     player_query: Single<(&PlayerWeapons, &AimType, &PlayerState)>,
     mut player_weapon_model_transform: Single<
         &mut Transform,
-        With<PlayerWeaponModel>,
+        (With<PlayerWeaponModel>, With<OurPlayerWeaponModel>),
     >,
     time: Res<Time>,
     app_debug_state: Option<ResMut<AppDebugState>>,
@@ -459,7 +490,7 @@ pub fn interpolate_weapon_position(
 pub fn weapon_model_kickback(
     mut player_weapon_model_transform: Single<
         &mut Transform,
-        With<PlayerWeaponModel>,
+        (With<PlayerWeaponModel>, With<OurPlayerWeaponModel>),
     >,
     mut player_shot_message_reader: MessageReader<PlayerWeaponFiredMessage>,
 ) {

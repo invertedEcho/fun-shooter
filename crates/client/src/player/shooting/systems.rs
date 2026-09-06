@@ -18,7 +18,9 @@ use crate::{
     player::{
         Player, PlayerDeathMessage,
         camera::{
-            components::{PlayerWeaponModel, WorldCamera},
+            components::{
+                OurPlayerWeaponModel, PlayerWeaponModel, WorldCamera,
+            },
             messages::UpdatePlayerWeaponModel,
             weapon_positions::get_position_for_weapon,
         },
@@ -79,9 +81,15 @@ pub fn handle_input(
         OurPlayerFilter,
     >,
     ui_state: Res<UiState>,
-    app_debug_state: Res<AppDebugState>,
+    app_debug_state: Option<Res<AppDebugState>>,
 ) {
-    if ui_state.buy_overlay_visible || app_debug_state.new_weapon_position {
+    if ui_state.buy_overlay_visible {
+        return;
+    }
+
+    if let Some(app_debug_state) = app_debug_state
+        && app_debug_state.new_weapon_position
+    {
         return;
     }
 
@@ -292,7 +300,7 @@ pub fn handle_reload_player_weapon_message(
     mut message_reader: MessageReader<ReloadPlayerWeaponMessage>,
     mut player_weapon_model_transform: Single<
         &mut Transform,
-        With<PlayerWeaponModel>,
+        (With<PlayerWeaponModel>, With<OurPlayerWeaponModel>),
     >,
 ) {
     let (mut player_weapons, mut player_state) = player_query.into_inner();
@@ -385,9 +393,11 @@ pub fn handle_weapon_slot_change(
     mut update_player_weapon_model_message_writer: MessageWriter<
         UpdatePlayerWeaponModel,
     >,
-    app_debug_state: Res<AppDebugState>,
+    app_debug_state: Option<Res<AppDebugState>>,
 ) {
-    if app_debug_state.new_weapon_position {
+    if let Some(app_debug_state) = app_debug_state
+        && app_debug_state.new_weapon_position
+    {
         return;
     }
 
@@ -459,9 +469,11 @@ pub fn handle_player_scope_aim(
         (&mut AimType, &PlayerState, &PlayerWeapons),
         OurPlayerFilter,
     >,
-    app_debug_state: Res<AppDebugState>,
+    app_debug_state: Option<Res<AppDebugState>>,
 ) {
-    if app_debug_state.new_weapon_position {
+    if let Some(app_debug_state) = app_debug_state
+        && app_debug_state.new_weapon_position
+    {
         return;
     }
 

@@ -1,10 +1,7 @@
 use netvy::prelude::*;
 
 use avian3d::prelude::*;
-use bevy::{
-    camera::visibility::RenderLayers, platform::collections::HashMap,
-    prelude::*, reflect::TypePath,
-};
+use bevy::{camera::visibility::RenderLayers, prelude::*, reflect::TypePath};
 use bevy_common_assets::json::JsonAssetPlugin;
 use serde::{Deserialize, Serialize};
 use shared::{
@@ -104,7 +101,7 @@ impl Plugin for GameCorePlugin {
         app.add_plugins(GameScorePlugin);
 
         app.add_systems(
-            Update,
+            FixedUpdate,
             (
                 read_stop_game_message,
                 check_world_scene_loaded,
@@ -113,7 +110,7 @@ impl Plugin for GameCorePlugin {
             ),
         );
         app.add_systems(
-            Update,
+            FixedUpdate,
             (kill_players_below_death_zone)
                 .run_if(not(in_state(AppRole::ClientOnly))),
         );
@@ -123,7 +120,7 @@ impl Plugin for GameCorePlugin {
             on_game_core_loading_state_done,
         );
 
-        app.add_systems(Update, handle_start_game_message);
+        app.add_systems(FixedUpdate, setup_game_config_server);
 
         app.add_systems(
             OnEnter(GameCoreLoadingState::GameScoreFinishedSetup),
@@ -134,39 +131,20 @@ impl Plugin for GameCorePlugin {
         app.add_observer(check_collider_constructor_hierarchy_ready);
 
         app.add_systems(
-            Update,
+            FixedUpdate,
             log_updates_to_game_core_loading_state
                 .run_if(state_changed::<GameCoreLoadingState>),
         );
     }
 }
 
-fn handle_start_game_message(
+fn setup_game_config_server(
     mut commands: Commands,
-    mut next_server_loading_state: ResMut<NextState<GameCoreLoadingState>>,
-    app_role: Res<State<AppRole>>,
     mut start_game_message_reader: MessageReader<StartGame>,
 ) {
     for message in start_game_message_reader.read() {
         commands.insert_resource(GameConfigServer(message.0));
-
         info!("Received StartGame message");
-
-        if *app_role.get() != AppRole::ClientOnly {
-            commands.spawn((
-                GameScore {
-                    players: HashMap::new(),
-                    enemies: HashMap::new(),
-                },
-                Name::new("Game Score"),
-                ReplicateEntity,
-            ));
-        }
-
-        // NOTE: theoretically the game score entity is not necessarily already spawned here, but we
-        // just do it here as spawning such a simple entity is trivial.
-        next_server_loading_state
-            .set(GameCoreLoadingState::GameScoreFinishedSetup);
     }
 }
 
@@ -228,16 +206,19 @@ fn on_game_core_loading_state_done(
 fn handle_client_respawn_requests(
     mut commands: Commands,
     mut message_reader: MessageReader<FromClient<ClientRespawnRequest>>,
-    mut player_query: Query<(Entity, &mut Health, &Owner, &mut Transform)>,
+    mut player_query: Query<(Entity, &NetEntityId, &mut Health, &Owner)>,
     mut message_writer: MessageWriter<ToClients<ConfirmRespawn>>,
 ) {
     for message in message_reader.read() {
-        info!("Received ClientRespawnRequest!");
+        info!(
+            "Received ClientRespawnRequest! Updating health and position of player"
+        );
+
         let client_peer_id = message.source_client;
-        let Some((player_entity, mut player_health, _, mut transform)) =
+        let Some((player_entity, net_entity_id, mut player_health, _)) =
             player_query
                 .iter_mut()
-                .find(|(_, _, owner, _)| owner.0 == client_peer_id)
+                .find(|(_, _, _, owner)| owner.0 == client_peer_id)
         else {
             warn!(
                 "Read a ClientRespawnRequest but couldn't figure out to which \
@@ -248,7 +229,10 @@ fn handle_client_respawn_requests(
 
         player_health.0 = DEFAULT_HEALTH;
 
-        transform.translation = SPAWN_POINT_MEDIUM_PLASTIC_MAP;
+        commands.queue(TeleportNetEntity {
+            net_entity_id: *net_entity_id,
+            position: SPAWN_POINT_MEDIUM_PLASTIC_MAP,
+        });
 
         commands.entity(player_entity).remove::<ColliderDisabled>();
 

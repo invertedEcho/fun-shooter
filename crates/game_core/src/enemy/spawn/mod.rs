@@ -6,7 +6,6 @@ use bevy::prelude::*;
 use bevy_landmass::{
     Agent, Agent3dBundle, AgentSettings, AgentTarget3d, ArchipelagoRef3d,
 };
-use netvy::prelude::*;
 use rand::Rng;
 use shared::{
     DEFAULT_HEALTH, GameConfigServer, GameMap,
@@ -163,8 +162,6 @@ fn handle_spawn_enemies_message(
                             Health(DEFAULT_HEALTH),
                             EnemyState::default(),
                             Grounded::default(),
-                            SyncPosition::default(),
-                            ReplicateEntity,
                             RigidBody::Kinematic,
                             Collider::capsule(
                                 CHARACTER_CAPSULE_RADIUS,

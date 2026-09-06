@@ -1,4 +1,5 @@
 use bevy::{prelude::*, ui::InteractionDisabled};
+use netvy::prelude::Disconnect;
 use shared::StopGame;
 
 use crate::{
@@ -68,9 +69,8 @@ pub enum CommonUiButton {
 #[derive(Component)]
 pub struct ExcludeFromHover;
 
-// TODO: This system does way too many things and especially things that aren't relevant for
-// `user_interface` module.
 fn handle_common_ui_button_press(
+    mut commands: Commands,
     query: Query<(&Interaction, &CommonUiButton), Changed<Interaction>>,
     mut app_exit_message_writer: MessageWriter<AppExit>,
     mut next_app_state: ResMut<NextState<AppState>>,
@@ -91,8 +91,7 @@ fn handle_common_ui_button_press(
 
                 debug!("Sending StopGame message and triggering disconnect");
                 message_writer.write(StopGame);
-                // FIXME: implement in netvy
-                // commands.trigger(Disconnect { entity: own_client });
+                commands.trigger(Disconnect);
             }
             CommonUiButton::ToGameModeSelection => {
                 next_main_menu_state.set(MainMenuState::GameModeSelection);

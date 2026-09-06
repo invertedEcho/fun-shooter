@@ -52,6 +52,7 @@ fn spawn_player_on_new_client(
                 Name::new("Player"),
                 ReplicateEntity,
                 SyncPosition::default(),
+                SyncRotation::default(),
                 Visibility::Visible,
                 Owner(*peer_id),
                 // we give the client authority too, as we dont have client-prediction yet in netvy.
@@ -161,9 +162,11 @@ fn handle_shoot_requests(
             continue;
         };
 
-        health.0 -= player_weapons.weapons[player_weapons.active_weapon_slot]
+        let health_to_substract = player_weapons.weapons
+            [player_weapons.active_weapon_slot]
             .game_weapon
             .damage;
+        health.0 -= health_to_substract;
 
         let is_enemy = enemy_query.get(entity_hit).is_ok();
 
@@ -177,6 +180,11 @@ fn handle_shoot_requests(
                 error!("Could not determine which player was hit");
                 continue;
             };
+            debug!(
+                "Substracted {health_to_substract} from health component of \
+                 player {:?}",
+                owner.0
+            );
             message_writer.write(ToClients {
                 message: PlayerHitMessage {
                     origin: message.origin,
